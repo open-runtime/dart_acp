@@ -24,7 +24,7 @@ class CliArgs {
       ..addFlag('help', abbr: 'h', help: 'Show this help and exit')
       ..addOption('agent', abbr: 'a', help: 'Select agent from settings.json')
       ..addOption(
-        'output',
+        'outputmode',
         abbr: 'o',
         help: 'Output mode',
         allowed: ['text', 'simple', 'json', 'jsonl'],
@@ -55,7 +55,7 @@ class CliArgs {
     final results = parser.parse(argv);
 
     // Parse output mode
-    final outputStr = results['output'] as String;
+    final outputStr = results['outputmode'] as String;
     OutputMode output;
     switch (outputStr) {
       case 'simple':
@@ -95,7 +95,7 @@ class CliArgs {
       ..addFlag('help', abbr: 'h', help: 'Show this help and exit')
       ..addOption('agent', abbr: 'a', help: 'Select agent from settings.json')
       ..addOption(
-        'output',
+        'outputmode',
         abbr: 'o',
         help: 'Output mode',
         allowed: ['text', 'simple', 'json', 'jsonl'],

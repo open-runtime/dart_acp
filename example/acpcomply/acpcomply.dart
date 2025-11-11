@@ -26,6 +26,13 @@ Future<void> main([List<String> argv = const []]) async {
       abbr: 't',
       help: 'Run only the specified test id(s)',
     )
+    ..addOption(
+      'outputmode',
+      abbr: 'o',
+      allowed: ['text', 'json', 'jsonl'],
+      defaultsTo: 'text',
+      help: 'Output mode: text (default) or json/jsonl',
+    )
     ..addOption('agent', abbr: 'a', help: 'Run only the specified agent')
     ..addFlag(
       'verbose',
@@ -96,6 +103,8 @@ Future<void> main([List<String> argv = const []]) async {
     exit(2);
   }
   final isVerbose = args['verbose'] == true;
+  final outputMode = ((args['outputmode'] as String?) ?? 'text').toLowerCase();
+  final isJsonl = outputMode == 'json' || outputMode == 'jsonl';
 
   // Pre-validate all selected tests before running any agents
   for (final tf in selectedTestFiles) {
@@ -149,35 +158,49 @@ Future<void> main([List<String> argv = const []]) async {
     final profile = await _collectAgentProfile(agentCfg);
 
     // Agent header (printed once per agent)
-    stdout.writeln('# $agentName compliance results');
-    if (profile.protocolVersion != null) {
-      stdout.writeln('- protocolVersion: ${profile.protocolVersion}');
+    if (isJsonl) {
+      stdout.writeln(jsonEncode({
+        'type': 'agent_header',
+        'agent': agentName,
+        if (profile.protocolVersion != null)
+          'protocolVersion': profile.protocolVersion,
+        'agentCapabilities': profile.agentCapabilities,
+        'authMethods': profile.authMethods,
+        'modes': {
+          'named': profile.modeNames,
+          'ids': profile.modes.toList(),
+        },
+        'commands': profile.commands.toList(),
+      }));
     }
-    if (profile.agentCapabilities.isNotEmpty) {
-      stdout.writeln(
-        '- agentCapabilities: ${jsonEncode(profile.agentCapabilities)}',
-      );
+    if (!isJsonl) {
+      stdout.writeln('# $agentName compliance results');
+      if (profile.protocolVersion != null) {
+        stdout.writeln('- protocolVersion: ${profile.protocolVersion}');
+      }
+      if (profile.agentCapabilities.isNotEmpty) {
+        stdout.writeln(
+          '- agentCapabilities: ${jsonEncode(profile.agentCapabilities)}',
+        );
+      }
+      if (profile.authMethods.isNotEmpty) {
+        stdout.writeln('- authMethods: ${jsonEncode(profile.authMethods)}');
+      }
+      if (profile.modeNames.isNotEmpty || profile.modes.isNotEmpty) {
+        final modesList = profile.modeNames.entries
+            .map((e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}')
+            .toList()
+          ..sort();
+        final extras = profile.modes.difference(profile.modeNames.keys.toSet());
+        final combined = [...modesList, ...extras];
+        stdout.writeln('- modes: [${combined.join(', ')}]');
+      }
+      if (profile.commands.isNotEmpty) {
+        final cmds = profile.commands.toList()..sort();
+        stdout.writeln('- commands: [${cmds.join(', ')}]');
+      }
+      stdout.writeln();
     }
-    if (profile.authMethods.isNotEmpty) {
-      stdout.writeln('- authMethods: ${jsonEncode(profile.authMethods)}');
-    }
-    if (profile.modeNames.isNotEmpty || profile.modes.isNotEmpty) {
-      final modesList =
-          profile.modeNames.entries
-              .map(
-                (e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}',
-              )
-              .toList()
-            ..sort();
-      final extras = profile.modes.difference(profile.modeNames.keys.toSet());
-      final combined = [...modesList, ...extras];
-      stdout.writeln('- modes: [${combined.join(', ')}]');
-    }
-    if (profile.commands.isNotEmpty) {
-      final cmds = profile.commands.toList()..sort();
-      stdout.writeln('- commands: [${cmds.join(', ')}]');
-    }
-    stdout.writeln();
 
     for (final tf in selectedTestFiles) {
       // Read template file and interpolate variables
@@ -204,10 +227,21 @@ Future<void> main([List<String> argv = const []]) async {
 
       // Print per-test header before running (progress visibility)
       final headerTitle = title ?? testId;
-      stdout.writeln('## $headerTitle');
-      stdout.writeln('id: $testId');
-      stdout.writeln('agent: $agentName');
-      stdout.writeln('description: $description');
+      if (isJsonl) {
+        stdout.writeln(jsonEncode({
+          'type': 'test_start',
+          'agent': agentName,
+          'id': testId,
+          'title': headerTitle,
+          'description': description,
+        }));
+      }
+      if (!isJsonl) {
+        stdout.writeln('## $headerTitle');
+        stdout.writeln('id: $testId');
+        stdout.writeln('agent: $agentName');
+        stdout.writeln('description: $description');
+      }
 
       // Run the test
       final report = await _runSingleTest(
@@ -222,12 +256,44 @@ Future<void> main([List<String> argv = const []]) async {
       );
 
       // Print result after running
-      stdout.writeln('status: ${report.status}');
+      if (!isJsonl) {
+        stdout.writeln('status: ${report.status}');
+      }
+      if (isJsonl) {
+        final result = <String, dynamic>{
+          'type': 'test_result',
+          'agent': report.agentName,
+          'id': report.testId,
+          'title': report.title,
+          'description': report.description,
+          'status': report.status,
+        };
+        if (report.status == 'NA' && report.naReason != null) {
+          result['naReason'] = report.naReason;
+        }
+        if (report.status == 'FAIL') {
+          result['unmetExpectations'] = report.unmetExpectations
+              .map((e) => {
+                    'kind': e.kind,
+                    'expected': e.expected,
+                    if (e.closestActual != null) 'closestActual': e.closestActual,
+                    if (e.diff.isNotEmpty) 'diff': e.diff,
+                  })
+              .toList();
+          if (report.forbidViolation != null) {
+            result['forbidViolation'] = report.forbidViolation;
+          }
+          if (report.links.isNotEmpty) {
+            result['links'] = report.links;
+          }
+        }
+        stdout.writeln(jsonEncode(result));
+      }
       if (report.status == 'NA' && report.naReason != null) {
         stdout.writeln('na_reason: ${report.naReason}');
       }
 
-      if (report.status == 'FAIL') {
+      if (report.status == 'FAIL' && !isJsonl) {
         // Unmet expectations / forbid hits
         if (report.unmetExpectations.isNotEmpty) {
           stdout.writeln();
@@ -263,7 +329,7 @@ Future<void> main([List<String> argv = const []]) async {
       }
 
       // Links (only for failures)
-      if (report.status == 'FAIL') {
+      if (report.status == 'FAIL' && !isJsonl) {
         final links = report.links;
         if (links.isNotEmpty) {
           stdout.writeln();
@@ -274,7 +340,7 @@ Future<void> main([List<String> argv = const []]) async {
         }
       }
 
-      stdout.writeln();
+      if (!isJsonl) stdout.writeln();
     }
   }
 }

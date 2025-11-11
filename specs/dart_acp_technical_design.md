@@ -276,7 +276,7 @@ To support multiple ACP agents and per‑agent launch options, the example CLI r
 
 - **CLI flags**:  
   - `--agent <name>` (`-a <name>`): selects an agent by key from `agent_servers`.  
-  - `--output <mode>` (`-o`): `jsonl|json|text|simple` (json is an alias for jsonl).  
+  - `--outputmode <mode>` (`-o`): `jsonl|json|text|simple` (json is an alias for jsonl).  
   - `--list-commands`: print available slash commands (AvailableCommand[]) without sending a prompt; waits for `available_commands_update`.  
   - `--list-modes`: print available session modes without sending a prompt.
   - `--list-caps`: print initialize results (protocolVersion, authMethods, agentCapabilities) without sending a prompt. Note: plan/diff/terminal are runtime behaviors and will not appear here. In JSONL mode, rely on mirrored `initialize` frames; in text mode, a concise summary is printed.  
@@ -424,7 +424,7 @@ dart example/bin/acpcli/main.dart [options] [--] [prompt]
 ### 17.2 Options
 
 - `-a, --agent <name>`: Selects an agent by key from `settings.json` (script directory) → `agent_servers`. If absent, defaults to the first listed agent. Missing file or unknown agent is an error and exits non‑zero.
-- `-o, --output <mode>`: One of `jsonl|json|text|simple` (default: `text`). `json` is an alias for `jsonl`. In `jsonl`/`json` modes, all protocol frames are mirrored to stdout and no human text is printed.
+- `-o, --outputmode <mode>`: One of `jsonl|json|text|simple` (default: `text`). `json` is an alias for `jsonl`. In `jsonl`/`json` modes, all protocol frames are mirrored to stdout and no human text is printed.
 - `--list-caps`: Prints capabilities reported by the agent during `initialize` (protocolVersion, authMethods, agentCapabilities). In `jsonl` mode, no extra lines are printed beyond the protocol frames. In text/simple mode, formatted with agent name in header.
 - `--list-modes`: Prints available session modes. Creates a session if needed.
 - `--list-commands`: Prints available slash commands after waiting for `available_commands_update`. Creates a session if needed.

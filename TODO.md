@@ -1,0 +1,8 @@
+- double-check the acp-client-best-practices with the new knowledge in acp-spec.dart
+- double-check the AcpClient and friends implementation with the updated acp-client-best-practices
+- update the specs and docs and tests
+- run the tests
+- compliance
+- build native clients for acpcli and acpcomply
+- ship it to pub.dev
+- https://github.com/zed-industries/agent-client-protocol/blob/main/docs/libraries/community.mdx

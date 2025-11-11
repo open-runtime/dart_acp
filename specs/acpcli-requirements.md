@@ -129,46 +129,46 @@ dart example/acpcli/acpcli.dart --settings ~/my-agents.json "Test"
 
 ### Core Features
 
-| Feature | Description | Status |
-|---------|-------------|---------|
-| **Agent Selection** | Select agent via `-a/--agent` flag | ✅ Implemented |
-| **Settings File** | JSON configuration for agents | ✅ Implemented |
-| **Protocol Initialization** | Negotiate version and capabilities | ✅ Implemented |
-| **Session Creation** | Create new ACP sessions | ✅ Implemented |
-| **Prompt Execution** | Send prompts and receive responses | ✅ Implemented |
-| **@-mention Support** | Parse and attach resource links | ✅ Implemented |
-| **Output Modes** | text, simple, jsonl formats | ✅ Implemented |
-| **Permission Handling** | Non-interactive permission decisions | ✅ Implemented |
-| **Cancellation** | Ctrl-C handling with proper cleanup | ✅ Implemented |
-| **Exit Codes** | Semantic exit codes for automation | ✅ Implemented |
+| Feature                     | Description                          | Status        |
+| --------------------------- | ------------------------------------ | ------------- |
+| **Agent Selection**         | Select agent via `-a/--agent` flag   | ✅ Implemented |
+| **Settings File**           | JSON configuration for agents        | ✅ Implemented |
+| **Protocol Initialization** | Negotiate version and capabilities   | ✅ Implemented |
+| **Session Creation**        | Create new ACP sessions              | ✅ Implemented |
+| **Prompt Execution**        | Send prompts and receive responses   | ✅ Implemented |
+| **@-mention Support**       | Parse and attach resource links      | ✅ Implemented |
+| **Output Modes**            | text, simple, jsonl formats          | ✅ Implemented |
+| **Permission Handling**     | Non-interactive permission decisions | ✅ Implemented |
+| **Cancellation**            | Ctrl-C handling with proper cleanup  | ✅ Implemented |
+| **Exit Codes**              | Semantic exit codes for automation   | ✅ Implemented |
 
 ### Extended Features
 
-| Feature | Description | Status |
-|---------|-------------|---------|
-| **Session Resume** | Load existing sessions (`--resume`) | ✅ Implemented |
-| **Session Save** | Save session ID (`--save-session`) | ✅ Implemented |
-| **Mode Selection** | Set session modes (`--mode`) | ✅ Implemented |
-| **Capability Listing** | Show agent capabilities (`--list-caps`) | ✅ Implemented |
-| **Mode Listing** | Show available modes (`--list-modes`) | ✅ Implemented |
-| **Command Listing** | Show slash commands (`--list-commands`) | ✅ Implemented |
-| **MCP Forwarding** | Forward MCP server configs | ✅ Implemented |
-| **Terminal Support** | Terminal capability provider | ✅ Implemented |
-| **Protocol Mirroring** | JSONL output for debugging | ✅ Implemented |
-| **Custom Settings Path** | Override settings location | ✅ Implemented |
+| Feature                  | Description                             | Status        |
+| ------------------------ | --------------------------------------- | ------------- |
+| **Session Resume**       | Load existing sessions (`--resume`)     | ✅ Implemented |
+| **Session Save**         | Save session ID (`--save-session`)      | ✅ Implemented |
+| **Mode Selection**       | Set session modes (`--mode`)            | ✅ Implemented |
+| **Capability Listing**   | Show agent capabilities (`--list-caps`) | ✅ Implemented |
+| **Mode Listing**         | Show available modes (`--list-modes`)   | ✅ Implemented |
+| **Command Listing**      | Show slash commands (`--list-commands`) | ✅ Implemented |
+| **MCP Forwarding**       | Forward MCP server configs              | ✅ Implemented |
+| **Terminal Support**     | Terminal capability provider            | ✅ Implemented |
+| **Protocol Mirroring**   | JSONL output for debugging              | ✅ Implemented |
+| **Custom Settings Path** | Override settings location              | ✅ Implemented |
 
 ### Update Types Supported
 
-| Update Type | Description | Display Format | Status |
-|-------------|-------------|----------------|---------|
-| **Message Chunks** | Assistant response text | Direct output | ✅ Implemented |
-| **Thought Chunks** | Internal reasoning | `[thought]` prefix (text mode) | ✅ Implemented |
-| **Plans** | Execution plans with priorities | `[plan]` with JSON | ✅ Implemented |
-| **Tool Calls** | Tool invocations with metadata | `[tool]` with kind/title/location | ✅ Implemented |
-| **Diffs** | File modifications | `[diff]` with JSON | ✅ Implemented |
-| **Available Commands** | Slash command updates | Via `--list-commands` | ✅ Implemented |
-| **Mode Updates** | Session mode changes | Reflected in state | ✅ Implemented |
-| **Terminal Events** | Terminal lifecycle | `[term]` prefixed output | ✅ Implemented |
+| Update Type            | Description                     | Display Format                    | Status        |
+| ---------------------- | ------------------------------- | --------------------------------- | ------------- |
+| **Message Chunks**     | Assistant response text         | Direct output                     | ✅ Implemented |
+| **Thought Chunks**     | Internal reasoning              | `[thought]` prefix (text mode)    | ✅ Implemented |
+| **Plans**              | Execution plans with priorities | `[plan]` with JSON                | ✅ Implemented |
+| **Tool Calls**         | Tool invocations with metadata  | `[tool]` with kind/title/location | ✅ Implemented |
+| **Diffs**              | File modifications              | `[diff]` with JSON                | ✅ Implemented |
+| **Available Commands** | Slash command updates           | Via `--list-commands`             | ✅ Implemented |
+| **Mode Updates**       | Session mode changes            | Reflected in state                | ✅ Implemented |
+| **Terminal Events**    | Terminal lifecycle              | `[term]` prefixed output          | ✅ Implemented |
 
 ## CLI Usage Reference
 
@@ -181,46 +181,46 @@ dart example/acpcli/acpcli.dart [options] [--] [prompt]
 
 #### Core Options
 
-| Flag | Long Form | Description | Default |
-|------|-----------|-------------|---------|
-| `-h` | `--help` | Show help and exit | - |
-| `-a <name>` | `--agent <name>` | Select agent from settings.json | First listed |
-| `-o <mode>` | `--output <mode>` | Output mode: text, simple, json, jsonl | text |
-| | `--settings <path>` | Path to settings.json file | Script directory |
+| Flag        | Long Form             | Description                            | Default          |
+| ----------- | --------------------- | -------------------------------------- | ---------------- |
+| `-h`        | `--help`              | Show help and exit                     | -                |
+| `-a <name>` | `--agent <name>`      | Select agent from settings.json        | First listed     |
+| `-o <mode>` | `--outputmode <mode>` | Output mode: text, simple, json, jsonl | text             |
+|             | `--settings <path>`   | Path to settings.json file             | Script directory |
 
 #### Permission Flags
 
-| Flag | Description | Effect |
-|------|-------------|--------|
-| `--write` | Enable write operations | Allows fs.writeTextFile |
-| `--yolo` | Enable read‑anywhere (debug) | Read anywhere; writes enabled but confined to workspace |
+| Flag      | Description                  | Effect                                                  |
+| --------- | ---------------------------- | ------------------------------------------------------- |
+| `--write` | Enable write operations      | Allows fs.writeTextFile                                 |
+| `--yolo`  | Enable read‑anywhere (debug) | Read anywhere; writes enabled but confined to workspace |
 
 #### List Operations
 
-| Flag | Description | Notes |
-|------|-------------|-------|
-| `--list-caps` | Show agent capabilities | No prompt sent if used alone |
-| `--list-modes` | Show available modes | Creates session if needed |
-| `--list-commands` | Show slash commands | Creates session if needed |
+| Flag              | Description             | Notes                        |
+| ----------------- | ----------------------- | ---------------------------- |
+| `--list-caps`     | Show agent capabilities | No prompt sent if used alone |
+| `--list-modes`    | Show available modes    | Creates session if needed    |
+| `--list-commands` | Show slash commands     | Creates session if needed    |
 
 **Note**: List flags can be combined to show multiple types of information in a single invocation.
 
 #### Session Management
 
-| Flag | Description | Requirements |
-|------|-------------|--------------|
-| `--mode <id>` | Set session mode after creation | Mode must be available |
-| `--resume <id>` | Resume existing session | Agent must support loadSession |
-| `--save-session <path>` | Save new session ID to file | - |
+| Flag                    | Description                     | Requirements                   |
+| ----------------------- | ------------------------------- | ------------------------------ |
+| `--mode <id>`           | Set session mode after creation | Mode must be available         |
+| `--resume <id>`         | Resume existing session         | Agent must support loadSession |
+| `--save-session <path>` | Save new session ID to file     | -                              |
 
 ### Exit Codes
 
-| Code | Meaning | Scenarios |
-|------|---------|-----------|
-| 0 | Success | Prompt completed normally |
-| 2 | Configuration/Usage Error | Invalid args, missing agent, bad settings |
-| 130 | User Cancellation | Ctrl-C pressed (128 + SIGINT) |
-| 1+ | Other Errors | Transport failures, protocol errors |
+| Code | Meaning                   | Scenarios                                 |
+| ---- | ------------------------- | ----------------------------------------- |
+| 0    | Success                   | Prompt completed normally                 |
+| 2    | Configuration/Usage Error | Invalid args, missing agent, bad settings |
+| 130  | User Cancellation         | Ctrl-C pressed (128 + SIGINT)             |
+| 1+   | Other Errors              | Transport failures, protocol errors       |
 
 ### Prompt Input Methods
 
@@ -322,13 +322,13 @@ Raw JSON-RPC protocol frames, one per line:
 ### Permission Model
 Non-interactive permission handling based on CLI flags:
 
-| Operation | Default | --write | --yolo |
-|-----------|---------|---------|--------|
-| Read (in workspace) | ✅ Allow | ✅ Allow | ✅ Allow |
-| Read (outside workspace) | ❌ Deny | ❌ Deny | ✅ Allow |
-| Write (in workspace) | ❌ Deny | ✅ Allow | ✅ Allow |
-| Write (outside workspace) | ❌ Deny | ❌ Deny | ❌ Deny |
-| Other operations | ✅ Allow | ✅ Allow | ✅ Allow |
+| Operation                 | Default | --write | --yolo  |
+| ------------------------- | ------- | ------- | ------- |
+| Read (in workspace)       | ✅ Allow | ✅ Allow | ✅ Allow |
+| Read (outside workspace)  | ❌ Deny  | ❌ Deny  | ✅ Allow |
+| Write (in workspace)      | ❌ Deny  | ✅ Allow | ✅ Allow |
+| Write (outside workspace) | ❌ Deny  | ❌ Deny  | ❌ Deny  |
+| Other operations          | ✅ Allow | ✅ Allow | ✅ Allow |
 
 Classification notes
 - Read operations include file reads (e.g., `fs/read_text_file`).

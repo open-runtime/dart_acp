@@ -613,12 +613,12 @@ class SessionManager {
   Future<Json> _onTerminalOutput(Json req) async {
     final provider = config.terminalProvider;
     if (provider == null) {
-      return {'output': '', 'truncated': false, 'exitStatus': null};
+      return {'outputmode': '', 'truncated': false, 'exitStatus': null};
     }
     final termId = req['terminalId'] as String;
     final handle = _terminals[termId];
     if (handle == null) {
-      return {'output': '', 'truncated': false, 'exitStatus': null};
+      return {'outputmode': '', 'truncated': false, 'exitStatus': null};
     }
     final output = await provider.currentOutput(handle);
     int? exitCode;
@@ -638,7 +638,7 @@ class SessionManager {
       ),
     );
     return {
-      'output': output,
+      'outputmode': output,
       'truncated': false,
       'exitStatus': exitCode == null ? null : {'code': exitCode},
     };
@@ -648,7 +648,7 @@ class SessionManager {
     final provider = config.terminalProvider;
     if (provider == null) {
       return {
-        'output': '',
+        'outputmode': '',
         'truncated': false,
         'exitStatus': {'code': 0},
       };
@@ -657,7 +657,7 @@ class SessionManager {
     final handle = _terminals[termId];
     if (handle == null) {
       return {
-        'output': '',
+        'outputmode': '',
         'truncated': false,
         'exitStatus': {'code': 0},
       };
@@ -665,7 +665,7 @@ class SessionManager {
     final code = await provider.waitForExit(handle);
     _terminalEvents.add(TerminalExited(terminalId: termId, code: code));
     return {
-      'output': handle.currentOutput(),
+      'outputmode': handle.currentOutput(),
       'truncated': false,
       'exitStatus': {'code': code},
     };

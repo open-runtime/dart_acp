@@ -212,18 +212,18 @@ See the full implementation: [`example/acpcli/acpcli.dart`](example/acpcli/acpcl
 dart example/acpcli/acpcli.dart [options] [--] [prompt]
 
 Options:
-  -h, --help             Show help and exit
-  -a, --agent <name>     Select agent from settings.json
-  -o, --output <mode>    Output mode: text, simple, jsonl, json (default: text)
-  --settings <path>      Use specific settings.json file
-  --write                Enable write operations (confined to CWD)
-  --yolo                 Enable read-anywhere; writes remain confined to CWD
-  --list-caps            Show agent capabilities
-  --list-modes           Show available session modes
-  --list-commands        Show slash commands
-  --mode <id>            Set session mode
-  --resume <id>          Resume existing session
-  --save-session <path>  Save session ID to file
+  -h, --help              Show help and exit
+  -a, --agent <name>      Select agent from settings.json
+  -o, --outputmode <mode> Output mode: text, simple, jsonl, json (default: text)
+  --settings <path>       Use specific settings.json file
+  --write                 Enable write operations (confined to CWD)
+  --yolo                  Enable read-anywhere; writes remain confined to CWD
+  --list-caps             Show agent capabilities
+  --list-modes            Show available session modes
+  --list-commands         Show slash commands
+  --mode <id>             Set session mode
+  --resume <id>           Resume existing session
+  --save-session <path>   Save session ID to file
 
 Prompt:
   Provide as positional argument or pipe via stdin
@@ -249,12 +249,12 @@ dart example/acpcli/acpcli.dart -a claude-code "Hello"
 
 #### Output Modes
 
-| Mode | Flag | Description | Use Case |
-|------|------|-------------|----------|
-| text | `-o text` (default) | Human-readable with metadata | Interactive use |
-| simple | `-o simple` | Assistant text only | Clean output |
-| jsonl | `-o jsonl` | Raw protocol frames | Debugging/automation |
-| json | `-o json` | Alias for jsonl | Protocol analysis |
+| Mode   | Flag                | Description                  | Use Case             |
+| ------ | ------------------- | ---------------------------- | -------------------- |
+| text   | `-o text` (default) | Human-readable with metadata | Interactive use      |
+| simple | `-o simple`         | Assistant text only          | Clean output         |
+| jsonl  | `-o jsonl`          | Raw protocol frames          | Debugging/automation |
+| json   | `-o json`           | Alias for jsonl              | Protocol analysis    |
 
 #### @-Mention Support
 Reference files and URLs directly in prompts:

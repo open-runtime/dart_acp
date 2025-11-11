@@ -20,7 +20,12 @@ void main() {
       final a = CliArgs.parse(['-a', 'gemini', '-o', 'json']);
       expect(a.agentName, 'gemini');
       expect(a.output, OutputMode.jsonl);
-      final b = CliArgs.parse(['--agent', 'claude-code', '--output', 'simple']);
+      final b = CliArgs.parse([
+        '--agent',
+        'claude-code',
+        '--outputmode',
+        'simple',
+      ]);
       expect(b.agentName, 'claude-code');
       expect(b.output, OutputMode.simple);
     });
