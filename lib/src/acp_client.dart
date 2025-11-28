@@ -3,6 +3,8 @@ import 'dart:async';
 import 'capabilities.dart';
 import 'config.dart';
 import 'content/content_builder.dart';
+import 'extensions.dart';
+import 'models/session_types.dart';
 import 'models/terminal_events.dart';
 import 'models/updates.dart';
 import 'rpc/peer.dart';
@@ -142,6 +144,51 @@ class AcpClient {
   }) async =>
       _sessionManager.setSessionMode(sessionId: sessionId, modeId: modeId);
 
+  // ===== Session Extensions =====
+
+  /// List existing sessions (requires agent support for session/list).
+  ///
+  /// Filter by [cwd] to show sessions for a specific directory.
+  /// Use [cursor] for pagination (from previous
+  /// [SessionListResult.nextCursor]).
+  ///
+  /// Check [InitializeResult.supportsListSessions] before calling.
+  Future<SessionListResult> listSessions({String? cwd, String? cursor}) async =>
+      _sessionManager.listSessions(cwd: cwd, cursor: cursor);
+
+  /// Resume a session without loading history (simpler than [loadSession]).
+  ///
+  /// Requires agent support for session/resume capability.
+  /// Check [InitializeResult.supportsResumeSession] before calling.
+  Future<SessionResult> resumeSession({
+    required String sessionId,
+    required String workspaceRoot,
+  }) async => _sessionManager.resumeSession(
+    sessionId: sessionId,
+    workspaceRoot: workspaceRoot,
+  );
+
+  /// Fork an existing session to create a new independent session.
+  ///
+  /// Useful for generating summaries or PR descriptions without
+  /// polluting the original session history.
+  /// Check [InitializeResult.supportsForkSession] before calling.
+  Future<SessionResult> forkSession({required String sessionId}) async =>
+      _sessionManager.forkSession(sessionId: sessionId);
+
+  /// Set a configuration option for a session.
+  ///
+  /// Returns the updated list of all config options for the session.
+  Future<List<ConfigOption>> setConfigOption({
+    required String sessionId,
+    required String configId,
+    required String value,
+  }) async => _sessionManager.setConfigOption(
+    sessionId: sessionId,
+    configId: configId,
+    value: value,
+  );
+
   /// Send an arbitrary JSON-RPC request (advanced; for compliance harness).
   Future<Map<String, dynamic>> sendRaw(
     String method,
@@ -153,4 +200,66 @@ class AcpClient {
     String method,
     Map<String, dynamic> params,
   ) async => _peer.sendNotificationRaw(method, params);
+
+  // ===== Extension Methods =====
+
+  /// Send an extension request to the agent.
+  ///
+  /// Extension methods MUST start with underscore (`_`). Use
+  /// [extensionMethodName] to create properly namespaced method names.
+  ///
+  /// Example:
+  /// ```dart
+  /// final method = extensionMethodName('zed.dev', 'workspace/buffers');
+  /// final response = await client.sendExtensionRequest(
+  ///   method,
+  ///   ExtensionParams({'language': 'rust'}),
+  /// );
+  /// ```
+  ///
+  /// Throws [ArgumentError] if [method] doesn't start with underscore.
+  /// May throw JSON-RPC errors if the agent doesn't support the method.
+  Future<ExtensionResponse> sendExtensionRequest(
+    String method,
+    ExtensionParams params,
+  ) async {
+    if (!isValidExtensionMethod(method)) {
+      throw ArgumentError.value(
+        method,
+        'method',
+        'Extension methods must start with underscore (_)',
+      );
+    }
+    final result = await _peer.sendRaw(method, params.toJson());
+    return ExtensionResponse(result);
+  }
+
+  /// Send an extension notification to the agent (no response expected).
+  ///
+  /// Extension notifications MUST start with underscore (`_`). Use
+  /// [extensionMethodName] to create properly namespaced method names.
+  ///
+  /// Example:
+  /// ```dart
+  /// final method = extensionMethodName('zed.dev', 'file_opened');
+  /// await client.sendExtensionNotification(
+  ///   method,
+  ///   ExtensionParams({'path': '/home/user/file.rs'}),
+  /// );
+  /// ```
+  ///
+  /// Throws [ArgumentError] if [method] doesn't start with underscore.
+  Future<void> sendExtensionNotification(
+    String method,
+    ExtensionParams params,
+  ) async {
+    if (!isValidExtensionMethod(method)) {
+      throw ArgumentError.value(
+        method,
+        'method',
+        'Extension methods must start with underscore (_)',
+      );
+    }
+    await _peer.sendNotificationRaw(method, params.toJson());
+  }
 }

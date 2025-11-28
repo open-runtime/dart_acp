@@ -159,19 +159,18 @@ Future<void> main([List<String> argv = const []]) async {
 
     // Agent header (printed once per agent)
     if (isJsonl) {
-      stdout.writeln(jsonEncode({
-        'type': 'agent_header',
-        'agent': agentName,
-        if (profile.protocolVersion != null)
-          'protocolVersion': profile.protocolVersion,
-        'agentCapabilities': profile.agentCapabilities,
-        'authMethods': profile.authMethods,
-        'modes': {
-          'named': profile.modeNames,
-          'ids': profile.modes.toList(),
-        },
-        'commands': profile.commands.toList(),
-      }));
+      stdout.writeln(
+        jsonEncode({
+          'type': 'agent_header',
+          'agent': agentName,
+          if (profile.protocolVersion != null)
+            'protocolVersion': profile.protocolVersion,
+          'agentCapabilities': profile.agentCapabilities,
+          'authMethods': profile.authMethods,
+          'modes': {'named': profile.modeNames, 'ids': profile.modes.toList()},
+          'commands': profile.commands.toList(),
+        }),
+      );
     }
     if (!isJsonl) {
       stdout.writeln('# $agentName compliance results');
@@ -187,10 +186,13 @@ Future<void> main([List<String> argv = const []]) async {
         stdout.writeln('- authMethods: ${jsonEncode(profile.authMethods)}');
       }
       if (profile.modeNames.isNotEmpty || profile.modes.isNotEmpty) {
-        final modesList = profile.modeNames.entries
-            .map((e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}')
-            .toList()
-          ..sort();
+        final modesList =
+            profile.modeNames.entries
+                .map(
+                  (e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}',
+                )
+                .toList()
+              ..sort();
         final extras = profile.modes.difference(profile.modeNames.keys.toSet());
         final combined = [...modesList, ...extras];
         stdout.writeln('- modes: [${combined.join(', ')}]');
@@ -228,13 +230,15 @@ Future<void> main([List<String> argv = const []]) async {
       // Print per-test header before running (progress visibility)
       final headerTitle = title ?? testId;
       if (isJsonl) {
-        stdout.writeln(jsonEncode({
-          'type': 'test_start',
-          'agent': agentName,
-          'id': testId,
-          'title': headerTitle,
-          'description': description,
-        }));
+        stdout.writeln(
+          jsonEncode({
+            'type': 'test_start',
+            'agent': agentName,
+            'id': testId,
+            'title': headerTitle,
+            'description': description,
+          }),
+        );
       }
       if (!isJsonl) {
         stdout.writeln('## $headerTitle');
@@ -273,12 +277,14 @@ Future<void> main([List<String> argv = const []]) async {
         }
         if (report.status == 'FAIL') {
           result['unmetExpectations'] = report.unmetExpectations
-              .map((e) => {
-                    'kind': e.kind,
-                    'expected': e.expected,
-                    if (e.closestActual != null) 'closestActual': e.closestActual,
-                    if (e.diff.isNotEmpty) 'diff': e.diff,
-                  })
+              .map(
+                (e) => {
+                  'kind': e.kind,
+                  'expected': e.expected,
+                  if (e.closestActual != null) 'closestActual': e.closestActual,
+                  if (e.diff.isNotEmpty) 'diff': e.diff,
+                },
+              )
               .toList();
           if (report.forbidViolation != null) {
             result['forbidViolation'] = report.forbidViolation;

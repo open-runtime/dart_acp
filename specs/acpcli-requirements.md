@@ -77,16 +77,19 @@ dart example/acpcli/acpcli.dart -o jsonl "Test" | jq '.method'"
 ### 4. Agent Capability Discovery
 ```bash
 # List agent capabilities
-dart example/acpcli/acpcli.dart -a claude-code --list-caps
+dart example/acpcli/acpcli.dart -a claude --list-caps
 
 # List available modes
-dart example/acpcli/acpcli.dart -a claude-code --list-modes
+dart example/acpcli/acpcli.dart -a claude --list-modes
 
 # List slash commands
-dart example/acpcli/acpcli.dart -a claude-code --list-commands
+dart example/acpcli/acpcli.dart -a claude --list-commands
+
+# List existing sessions (if agent supports)
+dart example/acpcli/acpcli.dart -a claude --list-sessions
 
 # Stack multiple list operations
-dart example/acpcli/acpcli.dart --list-caps --list-modes --list-commands
+dart example/acpcli/acpcli.dart --list-caps --list-modes --list-commands --list-sessions
 ```
 
 ### 5. Session Management
@@ -144,18 +147,19 @@ dart example/acpcli/acpcli.dart --settings ~/my-agents.json "Test"
 
 ### Extended Features
 
-| Feature                  | Description                             | Status        |
-| ------------------------ | --------------------------------------- | ------------- |
-| **Session Resume**       | Load existing sessions (`--resume`)     | ✅ Implemented |
-| **Session Save**         | Save session ID (`--save-session`)      | ✅ Implemented |
-| **Mode Selection**       | Set session modes (`--mode`)            | ✅ Implemented |
-| **Capability Listing**   | Show agent capabilities (`--list-caps`) | ✅ Implemented |
-| **Mode Listing**         | Show available modes (`--list-modes`)   | ✅ Implemented |
-| **Command Listing**      | Show slash commands (`--list-commands`) | ✅ Implemented |
-| **MCP Forwarding**       | Forward MCP server configs              | ✅ Implemented |
-| **Terminal Support**     | Terminal capability provider            | ✅ Implemented |
-| **Protocol Mirroring**   | JSONL output for debugging              | ✅ Implemented |
-| **Custom Settings Path** | Override settings location              | ✅ Implemented |
+| Feature                  | Description                               | Status        |
+| ------------------------ | ----------------------------------------- | ------------- |
+| **Session Resume**       | Load existing sessions (`--resume`)       | ✅ Implemented |
+| **Session Save**         | Save session ID (`--save-session`)        | ✅ Implemented |
+| **Session Listing**      | List sessions (`--list-sessions`)         | ✅ Implemented |
+| **Mode Selection**       | Set session modes (`--mode`)              | ✅ Implemented |
+| **Capability Listing**   | Show agent capabilities (`--list-caps`)   | ✅ Implemented |
+| **Mode Listing**         | Show available modes (`--list-modes`)     | ✅ Implemented |
+| **Command Listing**      | Show slash commands (`--list-commands`)   | ✅ Implemented |
+| **MCP Forwarding**       | Forward MCP server configs                | ✅ Implemented |
+| **Terminal Support**     | Terminal capability provider              | ✅ Implemented |
+| **Protocol Mirroring**   | JSONL output for debugging                | ✅ Implemented |
+| **Custom Settings Path** | Override settings location                | ✅ Implemented |
 
 ### Update Types Supported
 
@@ -197,11 +201,12 @@ dart example/acpcli/acpcli.dart [options] [--] [prompt]
 
 #### List Operations
 
-| Flag              | Description             | Notes                        |
-| ----------------- | ----------------------- | ---------------------------- |
-| `--list-caps`     | Show agent capabilities | No prompt sent if used alone |
-| `--list-modes`    | Show available modes    | Creates session if needed    |
-| `--list-commands` | Show slash commands     | Creates session if needed    |
+| Flag              | Description              | Notes                               |
+| ----------------- | ------------------------ | ----------------------------------- |
+| `--list-caps`     | Show agent capabilities  | No prompt sent if used alone        |
+| `--list-modes`    | Show available modes     | Creates session if needed           |
+| `--list-commands` | Show slash commands      | Creates session if needed           |
+| `--list-sessions` | List existing sessions   | Requires agent session/list support |
 
 **Note**: List flags can be combined to show multiple types of information in a single invocation.
 
@@ -274,7 +279,7 @@ dart example/acpcli/acpcli.dart [options] [--] [prompt]
 ```json
 {
   "agent_servers": {
-    "claude-code": {
+    "claude": {
       "command": "npx",
       "args": ["@zed-industries/claude-code-acp"],
       "env": {
@@ -285,6 +290,10 @@ dart example/acpcli/acpcli.dart [options] [--] [prompt]
     "gemini": {
       "command": "gemini",
       "args": ["--experimental-acp"]
+    },
+    "codex": {
+      "command": "npx",
+      "args": ["@zed-industries/codex-acp"]
     }
   }
 }
@@ -386,11 +395,13 @@ Based on `specs/acp-client-best-practices.md`, acpcli implements:
 
 ### Extensions (✅ Full Coverage)
 - [x] Session modes (list, set, updates)
+- [x] Session extensions (list, resume, fork, configOptions)
 - [x] Slash commands (available_commands_update)
 - [x] Priority levels in plans (high/medium/low)
 - [x] Enhanced tool statuses
 - [x] Command input hints
 - [x] Meta field support foundation
+- [x] Extension capabilities parsing
 
 ### Error Handling (✅ Full Coverage)
 - [x] Structured error reporting
@@ -523,8 +534,9 @@ Required test scenarios:
 
 ### Test Agents
 - **echo_agent**: Mock agent for basic testing
-- **gemini**: Real agent with experimental ACP
-- **claude-code**: Real agent via SDK adapter
+- **gemini**: Real agent with experimental ACP (brew install gemini-cli)
+- **claude**: Real agent via SDK adapter (@zed-industries/claude-code-acp)
+- **codex**: Real agent via SDK adapter (@zed-industries/codex-acp)
 
 ### Test Workarounds
 For issues with specific agent tests:

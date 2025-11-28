@@ -13,6 +13,7 @@ class CliArgs {
     this.listCommands = false,
     this.listModes = false,
     this.listCaps = false,
+    this.listSessions = false,
     this.modeId,
     this.resumeSessionId,
     this.saveSessionPath,
@@ -47,6 +48,10 @@ class CliArgs {
       ..addFlag(
         'list-caps',
         help: 'Print agent capabilities from initialize (no prompt sent)',
+      )
+      ..addFlag(
+        'list-sessions',
+        help: 'List existing sessions for current directory (if supported)',
       )
       ..addOption('mode', help: 'Set session mode after creation')
       ..addOption('resume', help: 'Resume an existing session (replay)')
@@ -83,6 +88,7 @@ class CliArgs {
       listCommands: results['list-commands'] as bool,
       listModes: results['list-modes'] as bool,
       listCaps: results['list-caps'] as bool,
+      listSessions: results['list-sessions'] as bool,
       modeId: results['mode'] as String?,
       resumeSessionId: results['resume'] as String?,
       saveSessionPath: results['save-session'] as String?,
@@ -119,6 +125,10 @@ class CliArgs {
         'list-caps',
         help: 'Print agent capabilities from initialize (no prompt sent)',
       )
+      ..addFlag(
+        'list-sessions',
+        help: 'List existing sessions for current directory (if supported)',
+      )
       ..addOption('mode', help: 'Set session mode after creation')
       ..addOption('resume', help: 'Resume an existing session (replay)')
       ..addOption('save-session', help: 'Save new sessionId to file');
@@ -147,6 +157,7 @@ Examples:
   final bool listCommands;
   final bool listModes;
   final bool listCaps;
+  final bool listSessions;
   final String? modeId;
   final String? resumeSessionId;
   final String? saveSessionPath;

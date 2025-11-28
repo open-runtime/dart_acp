@@ -49,6 +49,42 @@ class ListOperationsHandler {
       }
     }
 
+    // List sessions (no session needed, but requires capability)
+    if (args.listSessions) {
+      if (!init.supportsListSessions) {
+        if (args.output.isJsonLike) {
+          final errorJson = {
+            'jsonrpc': '2.0',
+            'method': 'client/error',
+            'params': {
+              'message': 'Agent does not support session/list',
+            },
+          };
+          stdout.writeln(jsonEncode(errorJson));
+        } else {
+          outputSections.add(
+            '# Sessions ($agentName)\n'
+            '(agent does not support session/list)\n',
+          );
+        }
+      } else {
+        final result = await client.listSessions(cwd: Directory.current.path);
+        if (args.output.isJsonLike) {
+          final sessionsJson = {
+            'jsonrpc': '2.0',
+            'method': 'client/sessions',
+            'params': {
+              'sessions': result.sessions.map((s) => s.toJson()).toList(),
+              if (result.nextCursor != null) 'nextCursor': result.nextCursor,
+            },
+          };
+          stdout.writeln(jsonEncode(sessionsJson));
+        } else {
+          outputSections.add(_formatSessionsMarkdown(result, agentName));
+        }
+      }
+    }
+
     // Create session if needed for modes/commands
     if (needsSession && sessionId == null) {
       sessionId = await client.newSession(Directory.current.path);
@@ -133,8 +169,26 @@ class ListOperationsHandler {
     if (caps == null || caps.isEmpty) return '(no capabilities reported)';
 
     final lines = <String>[];
+
+    // Use extension helpers for better formatting
+    final extCaps = init.extensionCapabilities;
+
     caps.forEach((key, value) {
-      if (value is bool) {
+      // Handle _meta (extension capabilities) specially
+      if (key == '_meta' && extCaps.isNotEmpty) {
+        lines.add('- extensions:');
+        for (final vendor in extCaps.vendors) {
+          lines.add('  - $vendor:');
+          final vendorCaps = extCaps.getVendorCapabilities(vendor);
+          vendorCaps?.forEach((k, v) {
+            if (v is bool && v) {
+              lines.add('    - $k');
+            } else if (v != null && v != false) {
+              lines.add('    - $k: $v');
+            }
+          });
+        }
+      } else if (value is bool) {
         if (value) lines.add('- $key');
       } else if (value is Map) {
         lines.add('- $key:');
@@ -149,6 +203,30 @@ class ListOperationsHandler {
         lines.add('- $key: $value');
       }
     });
+
+    // Add convenience capability checks
+    final convenienceLines = <String>[];
+    if (init.supportsLoadSession) {
+      convenienceLines.add('  - loadSession (can resume sessions)');
+    }
+    final prompt = init.promptCapabilities;
+    if (prompt.image || prompt.audio || prompt.embeddedContext) {
+      convenienceLines.add('  - promptCapabilities:');
+      if (prompt.image) convenienceLines.add('    - image');
+      if (prompt.audio) convenienceLines.add('    - audio');
+      if (prompt.embeddedContext) convenienceLines.add('    - embeddedContext');
+    }
+    final mcp = init.mcpCapabilities;
+    if (mcp.http || mcp.sse) {
+      convenienceLines.add('  - mcpCapabilities:');
+      if (mcp.http) convenienceLines.add('    - http');
+      if (mcp.sse) convenienceLines.add('    - sse');
+    }
+
+    if (convenienceLines.isNotEmpty) {
+      lines.add('- summary:');
+      lines.addAll(convenienceLines);
+    }
 
     return lines.isEmpty ? '(no capabilities)' : lines.join('\n');
   }
@@ -197,6 +275,31 @@ class ListOperationsHandler {
           buffer.writeln('- /$name - $desc');
         }
       }
+    }
+
+    return buffer.toString();
+  }
+
+  String _formatSessionsMarkdown(SessionListResult result, String agentName) {
+    final buffer = StringBuffer();
+    buffer.writeln('# Sessions ($agentName)');
+
+    if (result.sessions.isEmpty) {
+      buffer.writeln('(no sessions found)');
+    } else {
+      for (final s in result.sessions) {
+        final title = s.title ?? s.sessionId;
+        final updated = s.updatedAt != null
+            ? ' (${s.updatedAt!.toLocal().toString().split('.').first})'
+            : '';
+        buffer.writeln('- $title$updated');
+        buffer.writeln('  ID: ${s.sessionId}');
+        buffer.writeln('  CWD: ${s.cwd}');
+      }
+    }
+
+    if (result.hasMore) {
+      buffer.writeln('\n(more sessions available - use cursor for pagination)');
     }
 
     return buffer.toString();

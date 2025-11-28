@@ -1,6 +1,6 @@
 {
   "agent_servers": {
-    "claude-code": {
+    "claude": {
       "command": "npx",
       "args": [
         "@zed-industries/claude-code-acp"
@@ -14,6 +14,12 @@
       "command": "gemini",
       "args": [
         "--experimental-acp"
+      ]
+    },
+    "codex": {
+      "command": "npx",
+      "args": [
+        "@zed-industries/codex-acp"
       ]
     }
   }

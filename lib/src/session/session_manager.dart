@@ -4,6 +4,8 @@ import 'package:logging/logging.dart';
 
 import '../capabilities.dart';
 import '../config.dart';
+import '../extensions.dart';
+import '../models/session_types.dart';
 import '../models/terminal_events.dart';
 import '../models/tool_types.dart';
 import '../models/types.dart';
@@ -34,6 +36,69 @@ class InitializeResult {
 
   /// Supported auth methods (if any).
   final List<Map<String, dynamic>>? authMethods;
+
+  /// Get extension capabilities from the agent (`_meta` field).
+  ///
+  /// Returns parsed extension capabilities for checking vendor-specific
+  /// features:
+  /// ```dart
+  /// final extCaps = init.extensionCapabilities;
+  /// if (extCaps.supports('zed.dev', 'workspace')) {
+  ///   // Safe to use _zed.dev/workspace/* methods
+  /// }
+  /// ```
+  ExtensionCapabilities get extensionCapabilities {
+    final meta = agentCapabilities?['_meta'];
+    return ExtensionCapabilities.fromJson(
+      meta is Map<String, dynamic> ? meta : null,
+    );
+  }
+
+  /// Check if the agent supports session loading.
+  bool get supportsLoadSession => agentCapabilities?['loadSession'] == true;
+
+  /// Get prompt capabilities from the agent.
+  ({bool image, bool audio, bool embeddedContext}) get promptCapabilities {
+    final caps = agentCapabilities?['promptCapabilities'];
+    if (caps is! Map<String, dynamic>) {
+      return (image: false, audio: false, embeddedContext: false);
+    }
+    return (
+      image: caps['image'] == true,
+      audio: caps['audio'] == true,
+      embeddedContext: caps['embeddedContext'] == true,
+    );
+  }
+
+  /// Get MCP capabilities from the agent.
+  ({bool http, bool sse}) get mcpCapabilities {
+    final caps = agentCapabilities?['mcpCapabilities'];
+    if (caps is! Map<String, dynamic>) {
+      return (http: false, sse: false);
+    }
+    return (http: caps['http'] == true, sse: caps['sse'] == true);
+  }
+
+  /// Get session capabilities from the agent.
+  ///
+  /// Returns parsed session capabilities for checking extension support:
+  /// ```dart
+  /// final sessionCaps = init.sessionCapabilities;
+  /// if (sessionCaps.list) {
+  ///   // Safe to use session/list
+  /// }
+  /// ```
+  SessionCapabilities get sessionCapabilities =>
+      SessionCapabilities.fromJson(agentCapabilities);
+
+  /// Check if the agent supports session listing.
+  bool get supportsListSessions => sessionCapabilities.list;
+
+  /// Check if the agent supports session resuming (without history).
+  bool get supportsResumeSession => sessionCapabilities.resume;
+
+  /// Check if the agent supports session forking.
+  bool get supportsForkSession => sessionCapabilities.fork;
 }
 
 /// Orchestrates ACP lifecycle and routes updates/tool/terminal handlers.
@@ -158,6 +223,79 @@ class SessionManager {
       'cwd': workspaceRoot,
       'mcpServers': config.mcpServers,
     });
+  }
+
+  // ===== Session Extension Methods =====
+
+  /// List existing sessions (requires agent support for session/list).
+  ///
+  /// Filter by [cwd] to show sessions for a specific directory.
+  /// Use [cursor] for pagination (from previous
+  /// [SessionListResult.nextCursor]).
+  Future<SessionListResult> listSessions({String? cwd, String? cursor}) async {
+    final params = <String, dynamic>{};
+    if (cwd != null) params['cwd'] = cwd;
+    if (cursor != null) params['cursor'] = cursor;
+    final resp = await peer.sendRaw('session/list', params);
+    return SessionListResult.fromJson(resp);
+  }
+
+  /// Resume a session without loading history (simpler than loadSession).
+  ///
+  /// Requires agent support for session/resume capability.
+  Future<SessionResult> resumeSession({
+    required String sessionId,
+    required String workspaceRoot,
+  }) async {
+    _sessionStreams.putIfAbsent(
+      sessionId,
+      StreamController<AcpUpdate>.broadcast,
+    );
+    _replayBuffers.putIfAbsent(sessionId, () => <AcpUpdate>[]);
+    _sessionWorkspaceRoots[sessionId] = workspaceRoot;
+    final resp = await peer.sendRaw('session/resume', {
+      'sessionId': sessionId,
+      'cwd': workspaceRoot,
+      'mcpServers': config.mcpServers,
+    });
+    return SessionResult.fromJson({...resp, 'sessionId': sessionId});
+  }
+
+  /// Fork an existing session to create a new independent session.
+  ///
+  /// Useful for generating summaries or PR descriptions without
+  /// polluting the original session history.
+  /// Requires agent support for session/fork capability.
+  Future<SessionResult> forkSession({required String sessionId}) async {
+    final resp = await peer.sendRaw('session/fork', {'sessionId': sessionId});
+    final newId = resp['sessionId'] as String;
+    _sessionStreams.putIfAbsent(newId, StreamController<AcpUpdate>.broadcast);
+    _replayBuffers.putIfAbsent(newId, () => <AcpUpdate>[]);
+    // Copy workspace root from original session if available
+    final originalRoot = _sessionWorkspaceRoots[sessionId];
+    if (originalRoot != null) {
+      _sessionWorkspaceRoots[newId] = originalRoot;
+    }
+    return SessionResult.fromJson(resp);
+  }
+
+  /// Set a configuration option for a session.
+  ///
+  /// Returns the updated list of all config options for the session.
+  Future<List<ConfigOption>> setConfigOption({
+    required String sessionId,
+    required String configId,
+    required String value,
+  }) async {
+    final resp = await peer.sendRaw('session/set_config_option', {
+      'sessionId': sessionId,
+      'configId': configId,
+      'value': value,
+    });
+    final configList = resp['configOptions'] as List<dynamic>? ?? [];
+    return configList
+        .map((c) => ConfigOption.fromJson(c as Map<String, dynamic>))
+        .toList();
   }
 
   /// Send a prompt and stream typed updates for this turn only.

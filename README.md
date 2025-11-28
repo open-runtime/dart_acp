@@ -184,7 +184,7 @@ A comprehensive command-line interface for testing and interacting with ACP agen
 ```json
 {
   "agent_servers": {
-    "claude-code": {
+    "claude": {
       "command": "npx",
       "args": ["@zed-industries/claude-code-acp"],
       "env": {
@@ -194,6 +194,10 @@ A comprehensive command-line interface for testing and interacting with ACP agen
     "gemini": {
       "command": "gemini",
       "args": ["--experimental-acp"]
+    },
+    "codex": {
+      "command": "npx",
+      "args": ["@zed-industries/codex-acp"]
     }
   }
 }
@@ -221,6 +225,7 @@ Options:
   --list-caps             Show agent capabilities
   --list-modes            Show available session modes
   --list-commands         Show slash commands
+  --list-sessions         List existing sessions (if agent supports)
   --mode <id>             Set session mode
   --resume <id>           Resume existing session
   --save-session <path>   Save session ID to file
@@ -244,7 +249,9 @@ Select from configured agents or use the default:
 dart example/acpcli/acpcli.dart "Hello"
 
 # Select specific agent
-dart example/acpcli/acpcli.dart -a claude-code "Hello"
+dart example/acpcli/acpcli.dart -a claude "Hello"
+dart example/acpcli/acpcli.dart -a gemini "Hello"
+dart example/acpcli/acpcli.dart -a codex "Hello"
 ```
 
 #### Output Modes
@@ -284,13 +291,16 @@ dart example/acpcli/acpcli.dart --yolo "Search system files"
 Explore agent capabilities without sending prompts:
 ```bash
 # List capabilities
-dart example/acpcli/acpcli.dart -a claude-code --list-caps
+dart example/acpcli/acpcli.dart -a claude --list-caps
 
 # List session modes
-dart example/acpcli/acpcli.dart -a claude-code --list-modes
+dart example/acpcli/acpcli.dart -a claude --list-modes
 
 # List slash commands
-dart example/acpcli/acpcli.dart -a claude-code --list-commands
+dart example/acpcli/acpcli.dart -a claude --list-commands
+
+# List existing sessions (if agent supports)
+dart example/acpcli/acpcli.dart -a claude --list-sessions
 
 # Combine multiple lists
 dart example/acpcli/acpcli.dart --list-caps --list-modes --list-commands
@@ -386,8 +396,12 @@ Notes:
 
 ### Gemini CLI
 ```bash
-# Install from https://github.com/google-gemini/gemini-cli
-# Authenticate with: gemini auth login
+# Install via Homebrew
+brew install gemini-cli
+
+# Authenticate
+gemini auth login
+
 # Configure in settings.json with --experimental-acp flag
 ```
 
@@ -398,6 +412,17 @@ npx @zed-industries/claude-code-acp
 
 # Option 2: Install globally
 npm i -g @zed-industries/claude-code-acp
+```
+
+### Codex Adapter
+```bash
+# Option 1: Run via npx (recommended)
+npx @zed-industries/codex-acp
+
+# Option 2: Install globally
+npm i -g @zed-industries/codex-acp
+
+# Note: Requires OpenAI Codex CLI to be installed (brew install codex)
 ```
 
 ---
@@ -421,7 +446,8 @@ dart test --tags e2e
 
 # Specific agent tests
 dart test --tags e2e -n "gemini"
-dart test --tags e2e -n "claude-code"
+dart test --tags e2e -n "claude"
+dart test --tags e2e -n "codex"
 ```
 
 Tests use `test/test_settings.json` for agent configuration.

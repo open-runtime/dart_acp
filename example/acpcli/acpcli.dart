@@ -74,6 +74,7 @@ Future<void> main(List<String> argv) async {
         readTextFile: true,
         writeTextFile: args.write || args.yolo,
       ),
+      terminal: true, // Enable terminal capability for command execution
     ),
     mcpServers: mcpServers,
     allowReadOutsideWorkspace: args.yolo,
@@ -140,7 +141,8 @@ Future<void> main(List<String> argv) async {
 
   // Prepare prompt and check if we're in list-only mode.
   final prompt = await _readPrompt(args);
-  final hasListFlags = args.listCaps || args.listCommands || args.listModes;
+  final hasListFlags =
+      args.listCaps || args.listCommands || args.listModes || args.listSessions;
   final isListOnlyMode =
       hasListFlags && (prompt == null || prompt.trim().isEmpty);
 
@@ -188,10 +190,8 @@ Future<void> main(List<String> argv) async {
   if (listSessionId != null) {
     _sessionId = listSessionId;
   } else if (args.resumeSessionId != null) {
-    // Guard session/load behind capability per spec
-    final supportsLoad =
-        (init.agentCapabilities ?? const {})['loadSession'] == true;
-    if (!supportsLoad) {
+    // Guard session/load behind capability per spec (using extension helper)
+    if (!init.supportsLoadSession) {
       stderr.writeln(
         'Error: Agent does not support session/load (loadSession=false).',
       );
