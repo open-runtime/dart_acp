@@ -1,10 +1,10 @@
-/// Session extension types for ACP session management.
-///
-/// These types support the session-related RFDs:
-/// - session/list - Enumerate existing sessions
-/// - session/resume - Resume without loading history
-/// - session/fork - Fork an existing session
-/// - session/set_config_option - Configure session options
+// Session extension types for ACP session management.
+//
+// These types support the session-related RFDs:
+// - session/list - Enumerate existing sessions
+// - session/resume - Resume without loading history
+// - session/fork - Fork an existing session
+// - session/set_config_option - Configure session options
 
 /// Information about a session returned by session/list.
 class SessionInfo {
@@ -59,10 +59,7 @@ class SessionInfo {
 /// Result of session/list request.
 class SessionListResult {
   /// Creates a session list result.
-  const SessionListResult({
-    required this.sessions,
-    this.nextCursor,
-  });
+  const SessionListResult({required this.sessions, this.nextCursor});
 
   /// Creates from JSON response.
   factory SessionListResult.fromJson(Map<String, dynamic> json) {
@@ -194,11 +191,7 @@ class ConfigOptionChoice {
 /// Result of session/new, session/load, session/resume, or session/fork.
 class SessionResult {
   /// Creates a session result.
-  const SessionResult({
-    required this.sessionId,
-    this.configOptions,
-    this.meta,
-  });
+  const SessionResult({required this.sessionId, this.configOptions, this.meta});
 
   /// Creates from JSON response.
   factory SessionResult.fromJson(Map<String, dynamic> json) {

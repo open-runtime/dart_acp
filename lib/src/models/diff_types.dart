@@ -1,4 +1,4 @@
-/// Diff-related types for ACP.
+// Diff-related types for ACP.
 
 /// Status of a diff operation.
 enum DiffStatus {

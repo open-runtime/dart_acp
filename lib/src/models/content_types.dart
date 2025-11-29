@@ -1,4 +1,4 @@
-/// Content block types for ACP messages.
+// Content block types for ACP messages.
 
 /// Base class for content blocks.
 sealed class ContentBlock {

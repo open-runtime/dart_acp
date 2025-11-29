@@ -1,4 +1,4 @@
-/// Tool call related types for ACP.
+// Tool call related types for ACP.
 
 /// Tool call status per latest ACP specification.
 enum ToolCallStatus {
