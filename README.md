@@ -207,12 +207,16 @@ A comprehensive command-line interface for testing and interacting with ACP agen
       "command": "npx",
       "args": ["@zed-industries/claude-code-acp"],
       "env": {
-        "ACP_PERMISSION_MODE": "acceptEdits"
+        "ACP_PERMISSION_MODE": "acceptEdits",
+        "ACP_DEBUG": "true"
       }
     },
     "gemini": {
       "command": "gemini",
-      "args": ["--experimental-acp"]
+      "args": ["--experimental-acp"],
+      "env": {
+        "GEMINI_MODEL": "gemini-2.5-pro"
+      }
     },
     "codex": {
       "command": "npx",
@@ -417,33 +421,33 @@ Notes:
 
 ### Gemini CLI
 ```bash
-# Install via Homebrew
-brew install gemini-cli
+# Install via npm (requires Node.js)
+npm install -g @google/gemini-cli@0.17.1
 
 # Authenticate
 gemini auth login
 
-# Configure in settings.json with --experimental-acp flag
+# Configure in settings.json:
+# "gemini": {
+#   "command": "gemini",
+#   "args": ["--experimental-acp"],
+#   "env": { "GEMINI_MODEL": "gemini-2.5-pro" }
+# }
 ```
 
 ### Claude Code Adapter
 ```bash
-# Option 1: Run via npx (recommended)
+# Run via npx (recommended) - requires Node.js v22 (LTS)
 npx @zed-industries/claude-code-acp
 
-# Option 2: Install globally
-npm i -g @zed-industries/claude-code-acp
+# Note: Ensure you are using a stable Node.js version (e.g., v22).
+# Experimental versions (like v25) may cause crashes.
 ```
 
 ### Codex Adapter
 ```bash
-# Option 1: Run via npx (recommended)
+# Run via npx (recommended)
 npx @zed-industries/codex-acp
-
-# Option 2: Install globally
-npm i -g @zed-industries/codex-acp
-
-# Note: Requires OpenAI Codex CLI to be installed (brew install codex)
 ```
 
 ---

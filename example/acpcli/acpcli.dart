@@ -262,6 +262,10 @@ Future<void> main(List<String> argv) async {
     }
   }
 
+  if (!args.output.isJsonLike) {
+    stdout.writeln();
+  }
+
   await sigintSub.cancel();
   // Clean up session update subscription
   if (sessionSub != null) {

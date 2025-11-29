@@ -14,7 +14,10 @@
       "command": "gemini",
       "args": [
         "--experimental-acp"
-      ]
+      ],
+      "env": {
+        "GEMINI_MODEL": "gemini-2.5-pro"
+      }
     },
     "codex": {
       "command": "npx",

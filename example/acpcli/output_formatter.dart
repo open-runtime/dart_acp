@@ -84,7 +84,7 @@ class OutputFormatter {
         .whereType<TextContent>()
         .map((b) => b.text)
         .join();
-    if (texts.isNotEmpty) stdout.writeln(texts);
+    if (texts.isNotEmpty) stdout.write(texts);
   }
 
   String _truncate(String s, int max) {
