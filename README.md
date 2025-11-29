@@ -8,16 +8,35 @@ A Dart implementation of the [Agent Client Protocol (ACP)](https://agentclientpr
 
 - **`dart_acp` library**: A complete ACP client implementation for Dart applications
 - **`acpcli` tool**: A command-line interface for testing and interacting with ACP agents
-- **`acpcomply` app**: A compliance runner that executes a comprehensive JSON test suite against agents and prints a Markdown report
 
 ### Key Features
 
+#### Protocol & Streaming
 - **Full ACP Protocol Support**: Compatible with the latest specification from agentclientprotocol.com
-- **Streaming Updates**: Typed events for plans, tool calls, diffs, and agent messages
-- **Security**: Workspace jail enforcement, permission policies, and secure path handling
-- **Extensibility**: Support for session modes, slash commands, and protocol extensions
-- **Transport Abstraction**: JSON-RPC over stdio with bidirectional communication
-- **Rich Metadata**: Tool call tracking with kinds, locations, and execution status
+- **Typed Update Streaming**: Sealed `AcpUpdate` types with exhaustive pattern matching
+- **Turn-Scoped Streams**: Prompt streams auto-close after `TurnEnded` for clean resource management
+- **Session Replay**: Replay buffers persist updates for `session/load` history playback
+- **Tool Call Merging**: Automatic merge semantics for `tool_call_update` (only non-null fields update)
+
+#### Security
+- **Workspace Jail**: Path traversal prevention with symlink resolution and boundary enforcement
+- **Terminal CWD Jailing**: Terminal processes confined to workspace directory
+- **Permission Policies**: Pluggable permission provider with read/write/execute classification
+- **Secure Path Handling**: Home directory expansion, path normalization, and canonicalization
+
+#### Session Management
+- **Session State Tracking**: Per-session workspace roots, mode state, and tool call history
+- **Session Extensions**: Support for `session/list`, `session/resume`, `session/fork`, `session/set_config_option`
+- **Mode Switching**: Query available modes and switch dynamically during sessions
+
+#### Architecture
+- **Provider Pattern**: Pluggable `FsProvider`, `PermissionProvider`, and `TerminalProvider` with sensible defaults
+- **Transport Abstraction**: `StdioTransport` (spawn processes) and `StdinTransport` (piped I/O)
+- **JSON-RPC 2.0**: Built on `json_rpc_2` package with bidirectional request/notification support
+
+#### Tooling
+- **CLI Tool (`acpcli`)**: Full-featured command-line client with multiple output modes
+- **E2E Testing**: Integration tests with real agents (Gemini, Claude, Codex)
 
 ### Documentation
 
@@ -355,7 +374,9 @@ dart example/acpcli/acpcli.dart "Run: npm test"
 
 ---
 
-## acpcomply Compliance App
+## acpcomply Compliance App (Experimental)
+
+> **Note:** This tool is experimental and under active development. Test coverage and reliability may vary.
 
 The compliance runner executes a suite of ACP agent compliance tests and prints a Markdown report to stdout.
 
