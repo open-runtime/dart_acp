@@ -1,4 +1,4 @@
-/// Command and plan types for ACP.
+// Command and plan types for ACP.
 
 /// Input specification for available commands.
 class AvailableCommandInput {

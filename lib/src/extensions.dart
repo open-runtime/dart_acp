@@ -1,11 +1,11 @@
-/// ACP extension support for custom methods, metadata, and capabilities.
-///
-/// The Agent Client Protocol provides built-in extension mechanisms:
-/// - **_meta field**: Attach custom information to any protocol type
-/// - **Extension methods**: Custom requests/notifications starting with `_`
-/// - **Custom capabilities**: Advertise extensions via `_meta` in capabilities
-///
-/// See: https://agentclientprotocol.com/protocol/extensibility
+// ACP extension support for custom methods, metadata, and capabilities.
+//
+// The Agent Client Protocol provides built-in extension mechanisms:
+// - **_meta field**: Attach custom information to any protocol type
+// - **Extension methods**: Custom requests/notifications starting with `_`
+// - **Custom capabilities**: Advertise extensions via `_meta` in capabilities
+//
+// See: https://agentclientprotocol.com/protocol/extensibility
 
 // Builder pattern methods intentionally return this for chaining.
 // ignore_for_file: avoid_returning_this

@@ -56,9 +56,7 @@ class ListOperationsHandler {
           final errorJson = {
             'jsonrpc': '2.0',
             'method': 'client/error',
-            'params': {
-              'message': 'Agent does not support session/list',
-            },
+            'params': {'message': 'Agent does not support session/list'},
           };
           stdout.writeln(jsonEncode(errorJson));
         } else {

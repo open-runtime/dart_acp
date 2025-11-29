@@ -173,9 +173,7 @@ void main() {
         currentValue: 'a',
         description: 'A test option',
         group: 'testing',
-        options: [
-          ConfigOptionChoice(value: 'a', name: 'Option A'),
-        ],
+        options: [ConfigOptionChoice(value: 'a', name: 'Option A')],
       );
       final json = option.toJson();
       expect(json['id'], 'test');
@@ -264,10 +262,7 @@ void main() {
 
     test('fromJson parses sessionCapabilities format', () {
       final caps = SessionCapabilities.fromJson({
-        'sessionCapabilities': {
-          'list': {},
-          'fork': {},
-        },
+        'sessionCapabilities': {'list': {}, 'fork': {}},
       });
       expect(caps.list, isTrue);
       expect(caps.fork, isTrue);
@@ -276,11 +271,7 @@ void main() {
 
     test('fromJson parses session format', () {
       final caps = SessionCapabilities.fromJson({
-        'session': {
-          'list': {},
-          'resume': {},
-          'configOptions': {},
-        },
+        'session': {'list': {}, 'resume': {}, 'configOptions': {}},
       });
       expect(caps.list, isTrue);
       expect(caps.resume, isTrue);
