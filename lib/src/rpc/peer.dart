@@ -10,8 +10,12 @@ class JsonRpcPeer {
   /// Construct a peer bound to a [channel].
   JsonRpcPeer(StreamChannel<String> channel) : _peer = rpc.Peer(channel) {
     _registerClientHandlers();
-    // Start listening for messages; fire-and-forget intentionally.
-    unawaited(_peer.listen());
+    // Start listening for messages.
+    //
+    // Important: if the underlying transport dies (agent process killed),
+    // `listen()` can complete with an error. If that error is left unhandled,
+    // it becomes an uncaught async error in the host (and fails tests).
+    unawaited(_peer.listen().catchError((_) {}));
   }
 
   /// Underlying JSON-RPC peer.

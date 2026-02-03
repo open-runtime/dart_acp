@@ -45,6 +45,15 @@ class StdioTransport implements AcpTransport {
   LineJsonChannel? _channel;
   late Future<int>? _exitCodeFuture;
 
+  /// PID of the spawned agent process (if started).
+  ///
+  /// Exposed so hosts can deterministically manage the agent lifecycle
+  /// (e.g., crash testing without relying on `pgrep`).
+  int? get pid => _process?.pid;
+
+  /// Exit code future of the spawned agent process (if started).
+  Future<int>? get exitCode => _exitCodeFuture;
+
   @override
   StreamChannel<String> get channel {
     if (_channel == null) {
@@ -94,16 +103,11 @@ class StdioTransport implements AcpTransport {
       throw StateError('Agent process exited immediately with code $exitCode');
     }
 
-    // Monitor process exit to detect later crashes
+    // Monitor process exit for diagnostics.
     unawaited(
       _exitCodeFuture!.then((code) {
         if (code != 0) {
           logger.warning('Agent process exited with code $code');
-          // The process has crashed - close the channel controller
-          // to propagate the error
-          _channel?.channel.sink.addError(
-            StateError('Agent process exited unexpectedly with code $code'),
-          );
         }
       }),
     );
