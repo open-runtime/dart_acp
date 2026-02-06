@@ -22,11 +22,7 @@ typedef Json = Map<String, dynamic>;
 /// Result returned by initialize containing negotiated protocol and caps.
 class InitializeResult {
   /// Create an [InitializeResult].
-  InitializeResult({
-    required this.protocolVersion,
-    required this.agentCapabilities,
-    required this.authMethods,
-  });
+  InitializeResult({required this.protocolVersion, required this.agentCapabilities, required this.authMethods});
 
   /// Negotiated protocol version.
   final int protocolVersion;
@@ -49,9 +45,7 @@ class InitializeResult {
   /// ```
   ExtensionCapabilities get extensionCapabilities {
     final meta = agentCapabilities?['_meta'];
-    return ExtensionCapabilities.fromJson(
-      meta is Map<String, dynamic> ? meta : null,
-    );
+    return ExtensionCapabilities.fromJson(meta is Map<String, dynamic> ? meta : null);
   }
 
   /// Check if the agent supports session loading.
@@ -88,8 +82,7 @@ class InitializeResult {
   ///   // Safe to use session/list
   /// }
   /// ```
-  SessionCapabilities get sessionCapabilities =>
-      SessionCapabilities.fromJson(agentCapabilities);
+  SessionCapabilities get sessionCapabilities => SessionCapabilities.fromJson(agentCapabilities);
 
   /// Check if the agent supports session listing.
   bool get supportsListSessions => sessionCapabilities.list;
@@ -104,8 +97,7 @@ class InitializeResult {
 /// Orchestrates ACP lifecycle and routes updates/tool/terminal handlers.
 class SessionManager {
   /// Create a [SessionManager] with [config] and [peer].
-  SessionManager({required this.config, required this.peer})
-    : _log = config.logger {
+  SessionManager({required this.config, required this.peer}) : _log = config.logger {
     // Wire client-side handlers
     peer.onReadTextFile = _onReadTextFile;
     peer.onWriteTextFile = _onWriteTextFile;
@@ -116,7 +108,18 @@ class SessionManager {
     peer.onTerminalKill = _onTerminalKill;
     peer.onTerminalRelease = _onTerminalRelease;
 
-    peer.sessionUpdates.listen(_routeSessionUpdate);
+    _sessionUpdatesSub = peer.sessionUpdates.listen(
+      (json) {
+        try {
+          _routeSessionUpdate(json);
+        } on Object catch (e, st) {
+          _log.warning('Failed to route session update: $e', e, st);
+        }
+      },
+      onError: (Object e, StackTrace st) {
+        _log.warning('sessionUpdates stream error: $e', e, st);
+      },
+    );
   }
 
   /// Client configuration.
@@ -125,12 +128,12 @@ class SessionManager {
   /// JSON-RPC peer used for requests and client callbacks.
   final JsonRpcPeer peer;
   final Logger _log;
+  late final StreamSubscription<Json> _sessionUpdatesSub;
 
   final Map<String, StreamController<AcpUpdate>> _sessionStreams = {};
   final Map<String, List<AcpUpdate>> _replayBuffers = {};
   final Set<String> _cancellingSessions = <String>{};
-  final StreamController<TerminalEvent> _terminalEvents =
-      StreamController<TerminalEvent>.broadcast();
+  final StreamController<TerminalEvent> _terminalEvents = StreamController<TerminalEvent>.broadcast();
   // Track tool calls by session and tool call ID for proper merging
   final Map<String, Map<String, ToolCall>> _toolCalls = {};
   // Track workspace roots per session for filesystem operations
@@ -138,20 +141,30 @@ class SessionManager {
 
   /// Dispose all internal resources and close streams.
   Future<void> dispose() async {
+    // Cancel the session updates subscription first to stop routing.
+    await _sessionUpdatesSub.cancel();
     await _terminalEvents.close();
     for (final c in _sessionStreams.values) {
       await c.close();
     }
+    // Release all managed terminal processes.
+    for (final handle in _terminals.values) {
+      try {
+        await handle.release();
+      } on Object catch (_) {
+        // Best-effort terminal cleanup
+      }
+    }
+    _terminals.clear();
     _sessionStreams.clear();
     _replayBuffers.clear();
     _toolCalls.clear();
     _sessionWorkspaceRoots.clear();
+    _sessionModes.clear();
   }
 
   /// Send `initialize` with capabilities and return negotiated result.
-  Future<InitializeResult> initialize({
-    AcpCapabilities? capabilitiesOverride,
-  }) async {
+  Future<InitializeResult> initialize({AcpCapabilities? capabilitiesOverride}) async {
     final caps = capabilitiesOverride ?? config.capabilities;
     // Build client capabilities payload from standard caps,
     // and include non-standard terminal capability when supported.
@@ -177,10 +190,7 @@ class SessionManager {
 
   /// Create a new session and return its id.
   Future<String> newSession({required String workspaceRoot}) async {
-    final resp = await peer.newSession({
-      'cwd': workspaceRoot,
-      'mcpServers': config.mcpServers,
-    });
+    final resp = await peer.newSession({'cwd': workspaceRoot, 'mcpServers': config.mcpServers});
     final id = resp['sessionId'] as String;
     _sessionStreams.putIfAbsent(id, StreamController<AcpUpdate>.broadcast);
     _replayBuffers.putIfAbsent(id, () => <AcpUpdate>[]);
@@ -189,40 +199,21 @@ class SessionManager {
     final modes = resp['modes'];
     if (modes is Map<String, dynamic>) {
       final current = modes['currentModeId'] as String?;
-      final avail =
-          (modes['availableModes'] as List?)?.cast<Map<String, dynamic>>() ??
-          const [];
+      final avail = (modes['availableModes'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
       _sessionModes[id] = (
         currentModeId: current,
-        availableModes: avail
-            .map(
-              (m) => (
-                id: (m['id'] as String?) ?? '',
-                name: (m['name'] as String?) ?? '',
-              ),
-            )
-            .toList(),
+        availableModes: avail.map((m) => (id: (m['id'] as String?) ?? '', name: (m['name'] as String?) ?? '')).toList(),
       );
     }
     return id;
   }
 
   /// Load a previous session and replay updates to the client.
-  Future<void> loadSession({
-    required String sessionId,
-    required String workspaceRoot,
-  }) async {
-    _sessionStreams.putIfAbsent(
-      sessionId,
-      StreamController<AcpUpdate>.broadcast,
-    );
+  Future<void> loadSession({required String sessionId, required String workspaceRoot}) async {
+    _sessionStreams.putIfAbsent(sessionId, StreamController<AcpUpdate>.broadcast);
     _replayBuffers.putIfAbsent(sessionId, () => <AcpUpdate>[]);
     _sessionWorkspaceRoots[sessionId] = workspaceRoot;
-    await peer.loadSession({
-      'sessionId': sessionId,
-      'cwd': workspaceRoot,
-      'mcpServers': config.mcpServers,
-    });
+    await peer.loadSession({'sessionId': sessionId, 'cwd': workspaceRoot, 'mcpServers': config.mcpServers});
   }
 
   // ===== Session Extension Methods =====
@@ -243,14 +234,8 @@ class SessionManager {
   /// Resume a session without loading history (simpler than loadSession).
   ///
   /// Requires agent support for session/resume capability.
-  Future<SessionResult> resumeSession({
-    required String sessionId,
-    required String workspaceRoot,
-  }) async {
-    _sessionStreams.putIfAbsent(
-      sessionId,
-      StreamController<AcpUpdate>.broadcast,
-    );
+  Future<SessionResult> resumeSession({required String sessionId, required String workspaceRoot}) async {
+    _sessionStreams.putIfAbsent(sessionId, StreamController<AcpUpdate>.broadcast);
     _replayBuffers.putIfAbsent(sessionId, () => <AcpUpdate>[]);
     _sessionWorkspaceRoots[sessionId] = workspaceRoot;
     final resp = await peer.sendRaw('session/resume', {
@@ -293,17 +278,12 @@ class SessionManager {
       'value': value,
     });
     final configList = resp['configOptions'] as List<dynamic>? ?? [];
-    return configList
-        .map((c) => ConfigOption.fromJson(c as Map<String, dynamic>))
-        .toList();
+    return configList.map((c) => ConfigOption.fromJson(c as Map<String, dynamic>)).toList();
   }
 
   /// Send a prompt and stream typed updates for this turn only.
   /// The returned stream automatically closes after [TurnEnded].
-  Stream<AcpUpdate> prompt({
-    required String sessionId,
-    required List<Map<String, dynamic>> content,
-  }) {
+  Stream<AcpUpdate> prompt({required String sessionId, required List<Map<String, dynamic>> content}) {
     if (!_sessionStreams.containsKey(sessionId)) {
       // Unknown session; throw error
       throw ArgumentError('Invalid session ID: $sessionId');
@@ -311,28 +291,25 @@ class SessionManager {
 
     unawaited(() async {
       try {
-        final resp = await peer.prompt({
-          'sessionId': sessionId,
-          'prompt': content,
-        });
-        final stop = stopReasonFromWire(
-          (resp['stopReason'] as String?) ?? 'other',
-        );
+        final resp = await peer.prompt({'sessionId': sessionId, 'prompt': content});
+        final stop = stopReasonFromWire((resp['stopReason'] as String?) ?? 'other');
         final turnEnded = TurnEnded(stop);
         _replayBuffers[sessionId]?.add(turnEnded);
-        _sessionStreams[sessionId]!.add(turnEnded);
+        // Use ?. to guard against dispose() clearing _sessionStreams while
+        // this unawaited closure is in flight.
+        _sessionStreams[sessionId]?.add(turnEnded);
         if (stop == StopReason.cancelled) {
           _cancellingSessions.remove(sessionId);
         }
       } on Object catch (e, st) {
         _log.warning('prompt error: $e');
-        // Surface error to listeners so UIs can react
-        _sessionStreams[sessionId]!.addError(e, st);
-        // Send TurnEnded with 'other' stop reason to properly close the stream
+        // Surface error to listeners so UIs can react.
+        // Use ?. to guard against dispose() clearing _sessionStreams.
+        _sessionStreams[sessionId]?.addError(e, st);
         const turnEnded = TurnEnded(StopReason.other);
         _replayBuffers[sessionId]?.add(turnEnded);
-        _sessionStreams[sessionId]!.add(turnEnded);
-      } finally {}
+        _sessionStreams[sessionId]?.add(turnEnded);
+      }
     }());
 
     final base = _sessionStreams[sessionId]!.stream;
@@ -362,9 +339,7 @@ class SessionManager {
   String getWorkspaceRoot(String sessionId) {
     final root = _sessionWorkspaceRoots[sessionId];
     if (root == null) {
-      throw StateError(
-        'Session $sessionId not found or workspace root not set',
-      );
+      throw StateError('Session $sessionId not found or workspace root not set');
     }
     return root;
   }
@@ -380,9 +355,7 @@ class SessionManager {
     for (final u in buffer) {
       yield u;
     }
-    yield* _sessionStreams
-        .putIfAbsent(sessionId, StreamController<AcpUpdate>.broadcast)
-        .stream;
+    yield* _sessionStreams.putIfAbsent(sessionId, StreamController<AcpUpdate>.broadcast).stream;
   }
 
   void _routeSessionUpdate(Json json) {
@@ -391,18 +364,12 @@ class SessionManager {
     if (sessionId == null || update == null) return;
     // Ensure structures exist so we don't drop early updates (e.g., commands
     // emitted immediately after session/new).
-    _sessionStreams.putIfAbsent(
-      sessionId,
-      StreamController<AcpUpdate>.broadcast,
-    );
+    _sessionStreams.putIfAbsent(sessionId, StreamController<AcpUpdate>.broadcast);
     _replayBuffers.putIfAbsent(sessionId, () => <AcpUpdate>[]);
 
     final kind = update['sessionUpdate'];
     if (kind == 'available_commands_update') {
-      final cmds =
-          (update['availableCommands'] as List?)
-              ?.cast<Map<String, dynamic>>() ??
-          const [];
+      final cmds = (update['availableCommands'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
       final u = AvailableCommandsUpdate.fromRaw(cmds);
       _replayBuffers[sessionId]!.add(u);
       _sessionStreams[sessionId]!.add(u);
@@ -412,8 +379,7 @@ class SessionManager {
       _sessionStreams[sessionId]!.add(u);
     } else if (kind == 'tool_call' || kind == 'tool_call_update') {
       // Get tool call ID from the update
-      final toolCallId =
-          update['toolCallId'] as String? ?? update['id'] as String? ?? '';
+      final toolCallId = update['toolCallId'] as String? ?? update['id'] as String? ?? '';
 
       // Initialize tool calls map for session if needed
       _toolCalls.putIfAbsent(sessionId, () => {});
@@ -440,19 +406,13 @@ class SessionManager {
       final u = ToolCallUpdate(toolCall);
       _replayBuffers[sessionId]!.add(u);
       _sessionStreams[sessionId]!.add(u);
-    } else if (kind == 'user_message_chunk' ||
-        kind == 'agent_message_chunk' ||
-        kind == 'agent_thought_chunk') {
+    } else if (kind == 'user_message_chunk' || kind == 'agent_message_chunk' || kind == 'agent_thought_chunk') {
       final content = update['content'];
       final blocks = content is Map<String, dynamic>
           ? <Map<String, dynamic>>[content]
           : (content as List?)?.cast<Map<String, dynamic>>() ?? const [];
       final role = kind == 'user_message_chunk' ? 'user' : 'assistant';
-      final u = MessageDelta.fromRaw(
-        role: role,
-        rawContent: blocks,
-        isThought: kind == 'agent_thought_chunk',
-      );
+      final u = MessageDelta.fromRaw(role: role, rawContent: blocks, isThought: kind == 'agent_thought_chunk');
       _replayBuffers[sessionId]!.add(u);
       _sessionStreams[sessionId]!.add(u);
     } else if (kind == 'diff') {
@@ -464,10 +424,7 @@ class SessionManager {
       if (currentModeId != null) {
         final existing = _sessionModes[sessionId];
         if (existing != null) {
-          _sessionModes[sessionId] = (
-            currentModeId: currentModeId,
-            availableModes: existing.availableModes,
-          );
+          _sessionModes[sessionId] = (currentModeId: currentModeId, availableModes: existing.availableModes);
         } else {
           _sessionModes[sessionId] = (
             currentModeId: currentModeId,
@@ -487,21 +444,14 @@ class SessionManager {
 
   // ===== Modes support (extension) =====
   // Store current mode and available modes per session when provided.
-  final Map<
-    String,
-    ({String? currentModeId, List<({String id, String name})> availableModes})
-  >
-  _sessionModes = {};
+  final Map<String, ({String? currentModeId, List<({String id, String name})> availableModes})> _sessionModes = {};
 
   /// Returns currently known modes info for the session, if any.
-  ({String? currentModeId, List<({String id, String name})> availableModes})?
-  sessionModes(String sessionId) => _sessionModes[sessionId];
+  ({String? currentModeId, List<({String id, String name})> availableModes})? sessionModes(String sessionId) =>
+      _sessionModes[sessionId];
 
   /// Set the session mode (extension). Returns true if RPC succeeds.
-  Future<bool> setSessionMode({
-    required String sessionId,
-    required String modeId,
-  }) async {
+  Future<bool> setSessionMode({required String sessionId, required String modeId}) async {
     try {
       await peer.setSessionMode({'sessionId': sessionId, 'modeId': modeId});
       return true;
@@ -557,11 +507,7 @@ class SessionManager {
     final limit = (req['limit'] as num?)?.toInt();
     _log.fine('fs/read_text_file <- path=$path line=$line limit=$limit');
     try {
-      final content = await provider.readTextFile(
-        path,
-        line: line,
-        limit: limit,
-      );
+      final content = await provider.readTextFile(path, line: line, limit: limit);
       _log.fine('fs/read_text_file -> ok path=$path bytes=${content.length}');
       return {'content': content};
     } catch (e) {
@@ -629,8 +575,7 @@ class SessionManager {
         'outcome': {'outcome': 'cancelled'},
       };
     }
-    final options =
-        (req['options'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final options = (req['options'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
     final toolCall = req['toolCall'] as Map<String, dynamic>?;
     final toolName = (toolCall?['title'] as String?) ?? 'operation';
     final toolKind = toolCall?['kind'] as String?;
@@ -664,9 +609,7 @@ class SessionManager {
               orElse: () => null,
             )?['optionId']
             as String?;
-    optionId ??= options.isNotEmpty
-        ? (options.first['optionId'] as String?)
-        : null;
+    optionId ??= options.isNotEmpty ? (options.first['optionId'] as String?) : null;
     if (optionId == null) {
       // Fallback cancelled if options empty
       return {
@@ -737,13 +680,7 @@ class SessionManager {
     );
     _terminals[handle.terminalId] = handle;
     _terminalEvents.add(
-      TerminalCreated(
-        terminalId: handle.terminalId,
-        sessionId: sessionId,
-        command: cmd,
-        args: args,
-        cwd: cwd,
-      ),
+      TerminalCreated(terminalId: handle.terminalId, sessionId: sessionId, command: cmd, args: args, cwd: cwd),
     );
     return {'terminalId': handle.terminalId};
   }
@@ -761,20 +698,11 @@ class SessionManager {
     final output = await provider.currentOutput(handle);
     int? exitCode;
     try {
-      exitCode = await handle.process.exitCode.timeout(
-        const Duration(milliseconds: 1),
-      );
+      exitCode = await handle.process.exitCode.timeout(const Duration(milliseconds: 1));
     } on TimeoutException {
       exitCode = null;
     }
-    _terminalEvents.add(
-      TerminalOutputEvent(
-        terminalId: termId,
-        output: output,
-        truncated: false,
-        exitCode: exitCode,
-      ),
-    );
+    _terminalEvents.add(TerminalOutputEvent(terminalId: termId, output: output, truncated: false, exitCode: exitCode));
     return {
       'outputmode': output,
       'truncated': false,

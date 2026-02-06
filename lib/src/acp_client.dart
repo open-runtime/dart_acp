@@ -16,16 +16,12 @@ import 'transport/transport.dart';
 /// and streams updates from the agent.
 class AcpClient {
   /// Private constructor - use [AcpClient.start] to create instances.
-  AcpClient._({required this.config, required AcpTransport transport})
-    : _transport = transport;
+  AcpClient._({required this.config, required AcpTransport transport}) : _transport = transport;
 
   /// Create and start a client with the given configuration.
   /// If no transport is provided, creates a StdioTransport that spawns
   /// the agent.
-  static Future<AcpClient> start({
-    required AcpConfig config,
-    AcpTransport? transport,
-  }) async {
+  static Future<AcpClient> start({required AcpConfig config, AcpTransport? transport}) async {
     final actualTransport =
         transport ??
         StdioTransport(
@@ -39,11 +35,17 @@ class AcpClient {
 
     await actualTransport.start();
 
-    final client = AcpClient._(config: config, transport: actualTransport);
-    client._peer = JsonRpcPeer(actualTransport.channel);
-    client._sessionManager = SessionManager(config: config, peer: client._peer);
-
-    return client;
+    try {
+      final client = AcpClient._(config: config, transport: actualTransport);
+      client._peer = JsonRpcPeer(actualTransport.channel);
+      client._sessionManager = SessionManager(config: config, peer: client._peer);
+      return client;
+    } on Object {
+      // If peer or session manager construction fails, stop the transport
+      // to avoid leaking the spawned agent process.
+      await actualTransport.stop();
+      rethrow;
+    }
   }
 
   /// Client configuration.
@@ -53,36 +55,41 @@ class AcpClient {
   late final SessionManager _sessionManager;
 
   /// Dispose the transport and release resources.
+  ///
+  /// Each step is guarded independently so a failure in one doesn't
+  /// prevent subsequent cleanup (e.g., a SessionManager error shouldn't
+  /// leak the agent process).
   Future<void> dispose() async {
-    // Close JSON-RPC peer first to stop inbound traffic cleanly,
-    // then dispose session resources and finally stop the transport.
+    // Close JSON-RPC peer first to stop inbound traffic cleanly.
     try {
       await _peer.close();
-    } on Exception catch (_) {
-      // Ignore close errors during shutdown
+    } on Object catch (_) {
+      // Ignore close errors during shutdown (StateError, etc.)
     }
-    await _sessionManager.dispose();
-    await _transport.stop();
+    // Dispose session resources (streams, replay buffers, terminals).
+    try {
+      await _sessionManager.dispose();
+    } on Object catch (_) {
+      // Best-effort session cleanup
+    }
+    // Stop the transport and kill the agent process.
+    try {
+      await _transport.stop();
+    } on Object catch (_) {
+      // Best-effort transport cleanup
+    }
   }
 
   /// Send `initialize` to negotiate protocol and capabilities.
-  Future<InitializeResult> initialize({
-    AcpCapabilities? capabilitiesOverride,
-  }) async =>
+  Future<InitializeResult> initialize({AcpCapabilities? capabilitiesOverride}) async =>
       _sessionManager.initialize(capabilitiesOverride: capabilitiesOverride);
 
   /// Create a new ACP session; returns the session id.
-  Future<String> newSession(String workspaceRoot) async =>
-      _sessionManager.newSession(workspaceRoot: workspaceRoot);
+  Future<String> newSession(String workspaceRoot) async => _sessionManager.newSession(workspaceRoot: workspaceRoot);
 
   /// Load an existing session (if the agent supports it).
-  Future<void> loadSession({
-    required String sessionId,
-    required String workspaceRoot,
-  }) async => _sessionManager.loadSession(
-    sessionId: sessionId,
-    workspaceRoot: workspaceRoot,
-  );
+  Future<void> loadSession({required String sessionId, required String workspaceRoot}) async =>
+      _sessionManager.loadSession(sessionId: sessionId, workspaceRoot: workspaceRoot);
 
   /// Send a prompt to the agent and stream `AcpUpdate`s.
   ///
@@ -90,32 +97,23 @@ class AcpClient {
   /// - `@file.txt` or `@"path with spaces/file.txt"` for local files
   /// - `@https://example.com/resource` for URLs
   /// - `@~/Documents/file.txt` for home directory paths
-  Stream<AcpUpdate> prompt({
-    required String sessionId,
-    required String content,
-  }) {
+  Stream<AcpUpdate> prompt({required String sessionId, required String content}) {
     final workspaceRoot = _sessionManager.getWorkspaceRoot(sessionId);
-    final contentBlocks = ContentBuilder.buildFromPrompt(
-      content,
-      workspaceRoot: workspaceRoot,
-    );
+    final contentBlocks = ContentBuilder.buildFromPrompt(content, workspaceRoot: workspaceRoot);
     return _sessionManager.prompt(sessionId: sessionId, content: contentBlocks);
   }
 
   /// Subscribe to the persistent session updates stream (includes replay).
-  Stream<AcpUpdate> sessionUpdates(String sessionId) =>
-      _sessionManager.sessionUpdates(sessionId);
+  Stream<AcpUpdate> sessionUpdates(String sessionId) => _sessionManager.sessionUpdates(sessionId);
 
   /// Cancel the current turn for the given session.
-  Future<void> cancel({required String sessionId}) async =>
-      _sessionManager.cancel(sessionId: sessionId);
+  Future<void> cancel({required String sessionId}) async => _sessionManager.cancel(sessionId: sessionId);
 
   /// Terminal events stream for UI.
   Stream<TerminalEvent> get terminalEvents => _sessionManager.terminalEvents;
 
   /// Read current buffered output for a managed terminal.
-  Future<String> terminalOutput(String terminalId) async =>
-      _sessionManager.readTerminalOutput(terminalId);
+  Future<String> terminalOutput(String terminalId) async => _sessionManager.readTerminalOutput(terminalId);
 
   /// Kill a managed terminal process.
   Future<void> terminalKill(String terminalId) async {
@@ -123,8 +121,7 @@ class AcpClient {
   }
 
   /// Wait for a managed terminal process to exit.
-  Future<int?> terminalWaitForExit(String terminalId) async =>
-      _sessionManager.waitTerminal(terminalId);
+  Future<int?> terminalWaitForExit(String terminalId) async => _sessionManager.waitTerminal(terminalId);
 
   /// Release resources for a managed terminal.
   Future<void> terminalRelease(String terminalId) async {
@@ -134,14 +131,11 @@ class AcpClient {
   // ===== Modes (extension) =====
 
   /// Get current/available modes for a session, if provided by the agent.
-  ({String? currentModeId, List<({String id, String name})> availableModes})?
-  sessionModes(String sessionId) => _sessionManager.sessionModes(sessionId);
+  ({String? currentModeId, List<({String id, String name})> availableModes})? sessionModes(String sessionId) =>
+      _sessionManager.sessionModes(sessionId);
 
   /// Set the session mode (extension). Returns true on success.
-  Future<bool> setMode({
-    required String sessionId,
-    required String modeId,
-  }) async =>
+  Future<bool> setMode({required String sessionId, required String modeId}) async =>
       _sessionManager.setSessionMode(sessionId: sessionId, modeId: modeId);
 
   // ===== Session Extensions =====
@@ -160,13 +154,8 @@ class AcpClient {
   ///
   /// Requires agent support for session/resume capability.
   /// Check [InitializeResult.supportsResumeSession] before calling.
-  Future<SessionResult> resumeSession({
-    required String sessionId,
-    required String workspaceRoot,
-  }) async => _sessionManager.resumeSession(
-    sessionId: sessionId,
-    workspaceRoot: workspaceRoot,
-  );
+  Future<SessionResult> resumeSession({required String sessionId, required String workspaceRoot}) async =>
+      _sessionManager.resumeSession(sessionId: sessionId, workspaceRoot: workspaceRoot);
 
   /// Fork an existing session to create a new independent session.
   ///
@@ -183,23 +172,15 @@ class AcpClient {
     required String sessionId,
     required String configId,
     required String value,
-  }) async => _sessionManager.setConfigOption(
-    sessionId: sessionId,
-    configId: configId,
-    value: value,
-  );
+  }) async => _sessionManager.setConfigOption(sessionId: sessionId, configId: configId, value: value);
 
   /// Send an arbitrary JSON-RPC request (advanced; for compliance harness).
-  Future<Map<String, dynamic>> sendRaw(
-    String method,
-    Map<String, dynamic> params,
-  ) async => _peer.sendRaw(method, params);
+  Future<Map<String, dynamic>> sendRaw(String method, Map<String, dynamic> params) async =>
+      _peer.sendRaw(method, params);
 
   /// Send a JSON-RPC notification (no response expected).
-  Future<void> sendNotificationRaw(
-    String method,
-    Map<String, dynamic> params,
-  ) async => _peer.sendNotificationRaw(method, params);
+  Future<void> sendNotificationRaw(String method, Map<String, dynamic> params) async =>
+      _peer.sendNotificationRaw(method, params);
 
   // ===== Extension Methods =====
 
@@ -219,16 +200,9 @@ class AcpClient {
   ///
   /// Throws [ArgumentError] if [method] doesn't start with underscore.
   /// May throw JSON-RPC errors if the agent doesn't support the method.
-  Future<ExtensionResponse> sendExtensionRequest(
-    String method,
-    ExtensionParams params,
-  ) async {
+  Future<ExtensionResponse> sendExtensionRequest(String method, ExtensionParams params) async {
     if (!isValidExtensionMethod(method)) {
-      throw ArgumentError.value(
-        method,
-        'method',
-        'Extension methods must start with underscore (_)',
-      );
+      throw ArgumentError.value(method, 'method', 'Extension methods must start with underscore (_)');
     }
     final result = await _peer.sendRaw(method, params.toJson());
     return ExtensionResponse(result);
@@ -249,16 +223,9 @@ class AcpClient {
   /// ```
   ///
   /// Throws [ArgumentError] if [method] doesn't start with underscore.
-  Future<void> sendExtensionNotification(
-    String method,
-    ExtensionParams params,
-  ) async {
+  Future<void> sendExtensionNotification(String method, ExtensionParams params) async {
     if (!isValidExtensionMethod(method)) {
-      throw ArgumentError.value(
-        method,
-        'method',
-        'Extension methods must start with underscore (_)',
-      );
+      throw ArgumentError.value(method, 'method', 'Extension methods must start with underscore (_)');
     }
     await _peer.sendNotificationRaw(method, params.toJson());
   }

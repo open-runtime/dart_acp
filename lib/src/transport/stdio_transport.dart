@@ -43,7 +43,7 @@ class StdioTransport implements AcpTransport {
 
   Process? _process;
   LineJsonChannel? _channel;
-  late Future<int>? _exitCodeFuture;
+  Future<int>? _exitCodeFuture;
 
   /// PID of the spawned agent process (if started).
   ///
@@ -71,9 +71,7 @@ class StdioTransport implements AcpTransport {
         Process.start(cmd, a, workingDirectory: cwd, environment: baseEnv);
 
     if (command == null || command!.trim().isEmpty) {
-      throw StateError(
-        'AcpTransport requires an explicit agent command provided by the host.',
-      );
+      throw StateError('AcpTransport requires an explicit agent command provided by the host.');
     }
     final cmd = command!;
     final proc = await spawn(cmd, args);
@@ -91,9 +89,7 @@ class StdioTransport implements AcpTransport {
     var hasExited = false;
     int? exitCode;
     try {
-      exitCode = await _exitCodeFuture!.timeout(
-        const Duration(milliseconds: 10),
-      );
+      exitCode = await _exitCodeFuture!.timeout(const Duration(milliseconds: 10));
       hasExited = true;
     } on TimeoutException {
       // Process is still running, good
@@ -105,11 +101,16 @@ class StdioTransport implements AcpTransport {
 
     // Monitor process exit for diagnostics.
     unawaited(
-      _exitCodeFuture!.then((code) {
-        if (code != 0) {
-          logger.warning('Agent process exited with code $code');
-        }
-      }),
+      _exitCodeFuture!.then<void>(
+        (code) {
+          if (code != 0) {
+            logger.warning('Agent process exited with code $code');
+          }
+        },
+        onError: (Object e) {
+          logger.warning('Process exit code monitoring error: $e');
+        },
+      ),
     );
 
     _channel = LineJsonChannel(
@@ -123,11 +124,22 @@ class StdioTransport implements AcpTransport {
   @override
   Future<void> stop() async {
     if (_channel != null) {
-      await _channel!.dispose();
+      try {
+        await _channel!.dispose();
+      } on Object {
+        // Best-effort channel cleanup; process kill below handles the rest.
+      }
       _channel = null;
     }
     if (_process != null) {
       _process!.kill(ProcessSignal.sigterm);
+      try {
+        await _process!.exitCode.timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        _process?.kill(ProcessSignal.sigkill);
+      } on Object {
+        // Process already exited.
+      }
       _process = null;
     }
   }

@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
+import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 /// Alias for a JSON map used in requests/responses.
@@ -21,8 +23,17 @@ class JsonRpcPeer {
     // type must match the Future's reified type — returning null from (_) {}
     // is not assignable to List<void>. The .then<void> approach explicitly
     // converts to Future<void>, making the null return valid.
-    unawaited(_peer.listen().then<void>((_) {}, onError: (_) {}));
+    unawaited(
+      _peer.listen().then<void>(
+        (_) {},
+        onError: (Object e) {
+          _log.fine('Peer listen completed with error (transport likely closed): $e');
+        },
+      ),
+    );
   }
+
+  static final Logger _log = Logger('dart_acp.rpc.peer');
 
   /// Underlying JSON-RPC peer.
   final rpc.Peer _peer;
@@ -61,9 +72,7 @@ class JsonRpcPeer {
       return onWriteTextFile!(json);
     });
     // Permissioning (Agent -> Client)
-    _peer.registerMethod('session/request_permission', (
-      rpc.Parameters params,
-    ) async {
+    _peer.registerMethod('session/request_permission', (rpc.Parameters params) async {
       if (onRequestPermission == null) {
         throw rpc.RpcException.methodNotFound('session/request_permission');
       }
@@ -85,9 +94,7 @@ class JsonRpcPeer {
       final json = Map<String, dynamic>.from(params.value as Map);
       return onTerminalOutput!(json);
     });
-    _peer.registerMethod('terminal/wait_for_exit', (
-      rpc.Parameters params,
-    ) async {
+    _peer.registerMethod('terminal/wait_for_exit', (rpc.Parameters params) async {
       if (onTerminalWaitForExit == null) {
         throw rpc.RpcException.methodNotFound('terminal/wait_for_exit');
       }
@@ -144,27 +151,22 @@ class JsonRpcPeer {
       Map<String, dynamic>.from(await _peer.sendRequest('session/new', params));
 
   /// Send `session/load` for replay.
-  Future<void> loadSession(Json params) async =>
-      _peer.sendRequest('session/load', params);
+  Future<void> loadSession(Json params) async => _peer.sendRequest('session/load', params);
 
   /// Send `session/prompt` and return the terminal result payload.
-  Future<Json> prompt(Json params) async => Map<String, dynamic>.from(
-    await _peer.sendRequest('session/prompt', params),
-  );
+  Future<Json> prompt(Json params) async =>
+      Map<String, dynamic>.from(await _peer.sendRequest('session/prompt', params));
 
   /// Send `session/cancel` as a notification.
-  Future<void> cancel(Json params) async =>
-      _peer.sendNotification('session/cancel', params);
+  Future<void> cancel(Json params) async => _peer.sendNotification('session/cancel', params);
 
   /// (Extension) Send `session/set_mode` to change the session's mode.
-  Future<void> setSessionMode(Json params) async =>
-      _peer.sendRequest('session/set_mode', params);
+  Future<void> setSessionMode(Json params) async => _peer.sendRequest('session/set_mode', params);
 
   /// Send an arbitrary JSON-RPC request by method name with params.
   Future<Json> sendRaw(String method, Json params) async =>
       Map<String, dynamic>.from(await _peer.sendRequest(method, params));
 
   /// Send an arbitrary JSON-RPC notification by method name with params.
-  Future<void> sendNotificationRaw(String method, Json params) async =>
-      _peer.sendNotification(method, params);
+  Future<void> sendNotificationRaw(String method, Json params) async => _peer.sendNotification(method, params);
 }

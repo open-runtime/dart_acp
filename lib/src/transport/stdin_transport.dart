@@ -55,6 +55,10 @@ class StdinTransport implements AcpTransport {
       return;
     }
 
+    // Broadcast controllers are required here because the StdinTransport's
+    // StreamChannel is consumed by json_rpc_2's Peer which internally splits
+    // the stream between Client and Server. Single-subscription controllers
+    // would deadlock on the second listen.
     _inboundController = StreamController<String>.broadcast();
     _outboundController = StreamController<String>.broadcast();
 

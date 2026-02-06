@@ -2,16 +2,27 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
+
 /// Handle for a managed terminal process.
 class TerminalProcessHandle {
   /// Create a terminal process handle.
   TerminalProcessHandle({required this.terminalId, required this.process})
     : _stdoutSub = process.stdout.listen((data) {}),
       _stderrSub = process.stderr.listen((data) {}) {
-    // Rewire subscriptions to buffer output as text
-    _stdoutSub.onData((data) => _buffer.write(utf8.decode(data)));
-    _stderrSub.onData((data) => _buffer.write(utf8.decode(data)));
+    // Rewire subscriptions to buffer output as text.
+    // Use allowMalformed to prevent FormatException on non-UTF-8 binary output.
+    _stdoutSub.onData((data) => _buffer.write(utf8.decode(data, allowMalformed: true)));
+    _stderrSub.onData((data) => _buffer.write(utf8.decode(data, allowMalformed: true)));
+    _stdoutSub.onError((Object e) {
+      _log.warning('stdout error on terminal $terminalId: $e');
+    });
+    _stderrSub.onError((Object e) {
+      _log.warning('stderr error on terminal $terminalId: $e');
+    });
   }
+
+  static final Logger _log = Logger('dart_acp.terminal');
 
   /// Unique terminal identifier.
   final String terminalId;
@@ -95,25 +106,11 @@ class DefaultTerminalProvider implements TerminalProvider {
       } else {
         // Prefer bash if available; fall back to sh otherwise.
         final shell = await _which('bash') ?? await _which('sh') ?? 'sh';
-        final shellArgs = shell.endsWith('bash')
-            ? ['-lc', command]
-            : ['-c', command];
-        process = await Process.start(
-          shell,
-          shellArgs,
-          workingDirectory: cwd,
-          environment: env,
-          runInShell: false,
-        );
+        final shellArgs = shell.endsWith('bash') ? ['-lc', command] : ['-c', command];
+        process = await Process.start(shell, shellArgs, workingDirectory: cwd, environment: env, runInShell: false);
       }
     } else {
-      process = await Process.start(
-        command,
-        args,
-        workingDirectory: cwd,
-        environment: env,
-        runInShell: false,
-      );
+      process = await Process.start(command, args, workingDirectory: cwd, environment: env, runInShell: false);
     }
     final handle = TerminalProcessHandle(
       terminalId: '$sessionId:${DateTime.now().microsecondsSinceEpoch}',
@@ -124,12 +121,10 @@ class DefaultTerminalProvider implements TerminalProvider {
   }
 
   @override
-  Future<String> currentOutput(TerminalProcessHandle handle) async =>
-      handle.currentOutput();
+  Future<String> currentOutput(TerminalProcessHandle handle) async => handle.currentOutput();
 
   @override
-  Future<int> waitForExit(TerminalProcessHandle handle) async =>
-      handle.waitForExit();
+  Future<int> waitForExit(TerminalProcessHandle handle) async => handle.waitForExit();
 
   @override
   Future<void> kill(TerminalProcessHandle handle) async => handle.kill();

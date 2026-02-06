@@ -1,19 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as dev;
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 /// Wraps a process's stdio as a line-delimited JSON StreamChannel.
 class LineJsonChannel {
   /// Create a line-delimited channel around [process].
-  LineJsonChannel(
-    this.process, {
-    void Function(String)? onStderr,
-    this.onInboundLine,
-    this.onOutboundLine,
-  }) {
+  LineJsonChannel(this.process, {void Function(String)? onStderr, this.onInboundLine, this.onOutboundLine}) {
     _stdoutSub = process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -25,7 +20,7 @@ class LineJsonChannel {
           },
           onError: (e) {
             // Log but don't crash on stdout errors
-            dev.log('[LineJsonChannel] stdout error: $e');
+            _log.warning('stdout error: $e');
           },
         );
     // Always drain stderr to prevent subprocess blocking, even if no callback
@@ -39,7 +34,7 @@ class LineJsonChannel {
           },
           onError: (e) {
             // Log but don't crash on stderr errors
-            dev.log('[LineJsonChannel] stderr error: $e');
+            _log.warning('stderr error: $e');
           },
         );
 
@@ -51,19 +46,25 @@ class LineJsonChannel {
         process.stdin.add([0x0A]);
         // Flush to ensure immediate delivery
         unawaited(
-          process.stdin.flush().catchError((_) {
-            // Ignore flush errors (process may have exited)
-          }),
+          process.stdin.flush().then<void>(
+            (_) {},
+            onError: (Object e) {
+              _log.fine('stdin flush error (process may have exited): $e');
+            },
+          ),
         );
-      } on Object {
+      } on Object catch (e) {
         // Process has likely exited. Do NOT inject into the inbound stream —
         // json_rpc_2's Server may be performing an active addStream on the
         // paired sink, causing "Bad state: StreamSink is bound to a stream".
         // The process exit will be detected by StdioTransport's exitCode
         // monitoring for proper cleanup.
+        _log.fine('stdin write error (process likely dead): $e');
       }
     });
   }
+
+  static final Logger _log = Logger('dart_acp.rpc.channel');
 
   /// Underlying process.
   final Process process;
@@ -80,10 +81,17 @@ class LineJsonChannel {
   /// Exposed stream channel used by the JSON-RPC peer.
   StreamChannel<String> get channel => _controller.foreign;
 
-  /// Dispose resources and flush stdin.
+  /// Dispose resources, flush stdin, and close the channel.
   Future<void> dispose() async {
     await _stdoutSub.cancel();
     await _stderrSub.cancel();
-    await process.stdin.flush();
+    try {
+      await process.stdin.flush();
+    } on Object {
+      // Process may have already exited; stdin flush is best-effort.
+    }
+    // Signal to the JSON-RPC peer that the channel is done, so Peer.listen()
+    // completes instead of hanging forever.
+    await _controller.local.sink.close();
   }
 }
