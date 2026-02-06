@@ -55,9 +55,12 @@ class LineJsonChannel {
             // Ignore flush errors (process may have exited)
           }),
         );
-      } on Object catch (e) {
-        // Process has likely exited - propagate the error
-        _controller.local.sink.addError(e);
+      } on Object {
+        // Process has likely exited. Do NOT inject into the inbound stream —
+        // json_rpc_2's Server may be performing an active addStream on the
+        // paired sink, causing "Bad state: StreamSink is bound to a stream".
+        // The process exit will be detected by StdioTransport's exitCode
+        // monitoring for proper cleanup.
       }
     });
   }

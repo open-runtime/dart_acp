@@ -15,7 +15,13 @@ class JsonRpcPeer {
     // Important: if the underlying transport dies (agent process killed),
     // `listen()` can complete with an error. If that error is left unhandled,
     // it becomes an uncaught async error in the host (and fails tests).
-    unawaited(_peer.listen().catchError((_) {}));
+    // Use .then<void> instead of .catchError to avoid Dart 3.10's stricter
+    // runtime type checking. With json_rpc_2 4.0.0, Peer.listen() returns
+    // Future<List<void>> (via Future.wait). The .catchError handler's return
+    // type must match the Future's reified type — returning null from (_) {}
+    // is not assignable to List<void>. The .then<void> approach explicitly
+    // converts to Future<void>, making the null return valid.
+    unawaited(_peer.listen().then<void>((_) {}, onError: (_) {}));
   }
 
   /// Underlying JSON-RPC peer.
