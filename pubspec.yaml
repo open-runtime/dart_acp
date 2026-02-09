@@ -3,7 +3,6 @@ description: A Dart implementation of the Agent Client Protocol (ACP).
 version: 0.1.5
 repository: https://github.com/csells/dart_acp
 homepage: https://github.com/csells/dart_acp
-resolution: workspace
 publish_to: none
 
 environment:
