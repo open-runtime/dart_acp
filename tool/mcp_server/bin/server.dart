@@ -24,37 +24,36 @@ Future<void> main(List<String> args) async {
     'ping',
     description: 'Returns pong',
     callback: ({args, extra}) async =>
-        CallToolResult.fromContent(content: const [TextContent(text: 'pong')]),
+        CallToolResult.fromContent(const [TextContent(text: 'pong')]),
   );
 
   // Register a read_file tool: { path: string }
   server.tool(
     'read-file',
     description: 'Read a text file and return content',
-    toolInputSchema: const ToolInputSchema(
+    toolInputSchema: ToolInputSchema(
       properties: {
-        'path': {
-          'type': 'string',
-          'description': 'Absolute path to the file to read',
-        },
+        'path': JsonSchema.string(
+          description: 'Absolute path to the file to read',
+        ),
       },
-      required: ['path'],
+      required: const ['path'],
     ),
     callback: ({args, extra}) async {
       final path = args?['path'];
       if (path is! String || path.trim().isEmpty) {
-        return CallToolResult.fromContent(
-          content: const [TextContent(text: 'Invalid path')],
+        return const CallToolResult(
+          content: [TextContent(text: 'Invalid path')],
           isError: true,
         );
       }
       try {
         final content = await File(path).readAsString();
         return CallToolResult.fromContent(
-          content: [TextContent(text: content)],
+          [TextContent(text: content)],
         );
       } on Exception catch (e) {
-        return CallToolResult.fromContent(
+        return CallToolResult(
           content: [TextContent(text: 'Error: $e')],
           isError: true,
         );
@@ -66,26 +65,25 @@ Future<void> main(List<String> args) async {
   server.tool(
     'list-files',
     description: 'List files in a directory (non-recursive)',
-    toolInputSchema: const ToolInputSchema(
+    toolInputSchema: ToolInputSchema(
       properties: {
-        'path': {
-          'type': 'string',
-          'description': 'Absolute path to a directory to list',
-        },
+        'path': JsonSchema.string(
+          description: 'Absolute path to a directory to list',
+        ),
       },
-      required: ['path'],
+      required: const ['path'],
     ),
     callback: ({args, extra}) async {
       final path = args?['path'];
       if (path is! String || path.trim().isEmpty) {
-        return CallToolResult.fromContent(
-          content: const [TextContent(text: 'Invalid path')],
+        return const CallToolResult(
+          content: [TextContent(text: 'Invalid path')],
           isError: true,
         );
       }
       final dir = Directory(path);
       if (!dir.existsSync()) {
-        return CallToolResult.fromContent(
+        return CallToolResult(
           content: [TextContent(text: 'Directory does not exist: $path')],
           isError: true,
         );
@@ -103,10 +101,10 @@ Future<void> main(List<String> args) async {
           });
         }
         return CallToolResult.fromStructuredContent(
-          structuredContent: {'files': files},
+          {'files': files},
         );
       } on Exception catch (e) {
-        return CallToolResult.fromContent(
+        return CallToolResult(
           content: [TextContent(text: 'Error: $e')],
           isError: true,
         );
