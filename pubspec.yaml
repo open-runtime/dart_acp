@@ -8,6 +8,8 @@ publish_to: none
 environment:
   sdk: ^3.9.0
 
+resolution: workspace
+
 dependencies:
   args: ^2.5.0
   json_rpc_2: ^4.0.0
