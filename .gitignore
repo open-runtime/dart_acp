@@ -7,3 +7,6 @@
 pubspec.lock
 .DS_Store
 .vscode/settings.json
+
+# Runtime CI audit trails (local only)
+.runtime_ci/runs/

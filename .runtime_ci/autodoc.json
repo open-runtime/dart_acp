@@ -1,0 +1,145 @@
+{
+  "version": "1.0.0",
+  "gemini_model": "gemini-3.1-pro-preview",
+  "max_concurrent": 4,
+  "modules": [
+    {
+      "id": "content",
+      "name": "Content",
+      "source_paths": [
+        "lib/src/content/"
+      ],
+      "lib_paths": [
+        "lib/src/content/"
+      ],
+      "output_path": "docs/content/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "models",
+      "name": "Models",
+      "source_paths": [
+        "lib/src/models/"
+      ],
+      "lib_paths": [
+        "lib/src/models/"
+      ],
+      "output_path": "docs/models/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "providers",
+      "name": "Providers",
+      "source_paths": [
+        "lib/src/providers/"
+      ],
+      "lib_paths": [
+        "lib/src/providers/"
+      ],
+      "output_path": "docs/providers/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "rpc",
+      "name": "Rpc",
+      "source_paths": [
+        "lib/src/rpc/"
+      ],
+      "lib_paths": [
+        "lib/src/rpc/"
+      ],
+      "output_path": "docs/rpc/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "source_paths": [
+        "lib/src/security/"
+      ],
+      "lib_paths": [
+        "lib/src/security/"
+      ],
+      "output_path": "docs/security/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "session",
+      "name": "Session",
+      "source_paths": [
+        "lib/src/session/"
+      ],
+      "lib_paths": [
+        "lib/src/session/"
+      ],
+      "output_path": "docs/session/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "transport",
+      "name": "Transport",
+      "source_paths": [
+        "lib/src/transport/"
+      ],
+      "lib_paths": [
+        "lib/src/transport/"
+      ],
+      "output_path": "docs/transport/",
+      "generate": [
+        "quickstart",
+        "api_reference"
+      ],
+      "hash": "",
+      "last_updated": null
+    },
+    {
+      "id": "top_level",
+      "name": "Package Entry Points",
+      "source_paths": [
+        "lib/"
+      ],
+      "lib_paths": [],
+      "output_path": "docs/",
+      "generate": [
+        "quickstart"
+      ],
+      "hash": "",
+      "last_updated": null
+    }
+  ],
+  "templates": {
+    "quickstart": "scripts/prompts/autodoc_quickstart_prompt.dart",
+    "api_reference": "scripts/prompts/autodoc_api_reference_prompt.dart",
+    "examples": "scripts/prompts/autodoc_examples_prompt.dart"
+  }
+}

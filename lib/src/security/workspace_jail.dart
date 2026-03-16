@@ -16,14 +16,12 @@ class WorkspaceJail {
   /// Resolve a path relative to [workspaceRoot] if needed and ensure it
   /// remains within the workspace. Throws [FileSystemException] if outside.
   Future<String> resolveAndEnsureWithin(String path) async {
-    final joined = p.isAbsolute(path) ? path : p.join(workspaceRoot, path);
+    final normalizedPath = _normalizeIncomingPath(path);
+    final joined = p.isAbsolute(normalizedPath) ? normalizedPath : p.join(workspaceRoot, normalizedPath);
     final canonical = await _canonicalize(joined);
     final rootCanonical = await _canonicalize(workspaceRoot);
     if (!_isWithin(canonical, rootCanonical)) {
-      throw FileSystemException(
-        'Access outside workspace is denied',
-        canonical,
-      );
+      throw FileSystemException('Access outside workspace is denied', canonical);
     }
     return canonical;
   }
@@ -31,7 +29,8 @@ class WorkspaceJail {
   /// Resolve path relative to workspace if relative, but do not enforce
   /// workspace boundary. Useful for read-anywhere modes.
   Future<String> resolveForgiving(String path) async {
-    final joined = p.isAbsolute(path) ? path : p.join(workspaceRoot, path);
+    final normalizedPath = _normalizeIncomingPath(path);
+    final joined = p.isAbsolute(normalizedPath) ? normalizedPath : p.join(workspaceRoot, normalizedPath);
     return _canonicalize(joined);
   }
 
@@ -64,5 +63,17 @@ class WorkspaceJail {
         return p.normalize(p.absolute(path));
       }
     }
+  }
+
+  String _normalizeIncomingPath(String path) {
+    final uri = Uri.tryParse(path);
+    if (uri != null && uri.scheme == 'file') {
+      try {
+        return uri.toFilePath(windows: Platform.isWindows);
+      } on UnsupportedError {
+        return path;
+      }
+    }
+    return path;
   }
 }

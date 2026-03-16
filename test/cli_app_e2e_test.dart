@@ -413,6 +413,11 @@ void main() {
     test(
       '--resume guarded by loadSession capability (error when unsupported)',
       () async {
+        final skipReason = skipIfGeminiAuthMissing();
+        if (skipReason != null) {
+          markTestSkipped(skipReason);
+          return;
+        }
         // Check loadSession capability (lazy initialization)
         final caps = await capsFor('gemini');
         final ac = caps.agentCapabilities;
@@ -434,6 +439,15 @@ void main() {
         await proc.stdin.close();
         final stderrText = await proc.stderr.transform(utf8.decoder).join();
         final code = await proc.exitCode.timeout(const Duration(seconds: 30));
+        if (stderrText.contains('Authentication required') ||
+            stderrText.contains('api key') ||
+            stderrText.contains('401')) {
+          markTestSkipped(
+            'Gemini auth not configured or invalid - '
+            'set GEMINI_API_KEY or GOOGLE_API_KEY',
+          );
+          return;
+        }
         expect(
           code,
           2,
@@ -557,6 +571,11 @@ void main() {
       // skip: skipIfNoRuntimeTerminal('claude-code'), // Now async - check in test body
     );
     test('gemini: list caps (jsonl)', () async {
+      final skipReason = skipIfGeminiAuthMissing();
+      if (skipReason != null) {
+        markTestSkipped(skipReason);
+        return;
+      }
       final proc = await Process.start('dart', [
         path.join(Directory.current.path, 'example', 'acpcli', 'acpcli.dart'),
         '--settings',
@@ -574,6 +593,16 @@ void main() {
           .toList();
       final stderrText = await proc.stderr.transform(utf8.decoder).join();
       final code = await proc.exitCode.timeout(const Duration(seconds: 30));
+      if (code != 0 &&
+          (stderrText.contains('Authentication required') ||
+              stderrText.contains('api key') ||
+              stderrText.contains('401'))) {
+        markTestSkipped(
+          'Gemini auth not configured or invalid - '
+          'set GEMINI_API_KEY or GOOGLE_API_KEY',
+        );
+        return;
+      }
       expect(code, 0, reason: 'list-caps failed. stderr= $stderrText');
       final hasInitResult = lines
           .map((l) => jsonDecode(l) as Map<String, dynamic>)
@@ -870,6 +899,11 @@ void main() {
     test(
       'gemini: list commands (jsonl) — emits empty available_commands_update',
       () async {
+        final skipReason = skipIfGeminiAuthMissing();
+        if (skipReason != null) {
+          markTestSkipped(skipReason);
+          return;
+        }
         final proc = await Process.start('dart', [
           path.join(Directory.current.path, 'example', 'acpcli', 'acpcli.dart'),
           '--settings',
@@ -887,6 +921,16 @@ void main() {
             .toList();
         final stderrText = await proc.stderr.transform(utf8.decoder).join();
         final code = await proc.exitCode.timeout(const Duration(seconds: 30));
+        if (code != 0 &&
+            (stderrText.contains('Authentication required') ||
+                stderrText.contains('api key') ||
+                stderrText.contains('401'))) {
+          markTestSkipped(
+            'Gemini auth not configured or invalid - '
+            'set GEMINI_API_KEY or GOOGLE_API_KEY',
+          );
+          return;
+        }
         expect(code, 0, reason: 'list-commands failed. stderr= $stderrText');
         final updates = lines
             .map((l) => jsonDecode(l) as Map<String, dynamic>)
@@ -908,6 +952,11 @@ void main() {
     test(
       'gemini: list commands (text mode)',
       () async {
+        final skipReason = skipIfGeminiAuthMissing();
+        if (skipReason != null) {
+          markTestSkipped(skipReason);
+          return;
+        }
         final proc = await Process.start('dart', [
           path.join(Directory.current.path, 'example', 'acpcli', 'acpcli.dart'),
           '--settings',
@@ -919,6 +968,16 @@ void main() {
         await proc.stdin.close();
         final stderrBuffer = await proc.stderr.transform(utf8.decoder).join();
         final code = await proc.exitCode.timeout(const Duration(seconds: 30));
+        if (code != 0 &&
+            (stderrBuffer.contains('Authentication required') ||
+                stderrBuffer.contains('api key') ||
+                stderrBuffer.contains('401'))) {
+          markTestSkipped(
+            'Gemini auth not configured or invalid - '
+            'set GEMINI_API_KEY or GOOGLE_API_KEY',
+          );
+          return;
+        }
         expect(
           code,
           0,

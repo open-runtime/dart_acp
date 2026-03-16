@@ -2,6 +2,17 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:io';
 
+/// Returns null if Gemini auth is configured; otherwise a skip reason.
+/// Checks GEMINI_API_KEY and GOOGLE_API_KEY (Gemini CLI supports both).
+String? skipIfGeminiAuthMissing() {
+  final key = Platform.environment['GEMINI_API_KEY'] ??
+      Platform.environment['GOOGLE_API_KEY'];
+  if (key == null || key.trim().isEmpty) {
+    return 'GEMINI_API_KEY or GOOGLE_API_KEY not set; skipping Gemini test';
+  }
+  return null;
+}
+
 class AgentCaps {
   AgentCaps({required this.agent, required this.result});
   final String agent;
