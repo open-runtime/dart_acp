@@ -21,7 +21,9 @@
       "build_runner": false,
       "web_test": false
     },
-    "secrets": {},
+    "secrets": {
+      "env_file": false
+    },
     "sub_packages": [],
     "git_orgs": [
       "open-runtime",
@@ -44,6 +46,13 @@
     "typescript": {
       "node_version": "22",
       "package_manager": "pnpm"
+    },
+    "test_exclude_tags": "gcp,integration",
+    "flutter": {
+      "channel": "stable"
+    },
+    "rust": {
+      "toolchain": "stable"
     }
   },
   "gcp": {
