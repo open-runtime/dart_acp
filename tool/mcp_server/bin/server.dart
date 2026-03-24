@@ -12,10 +12,7 @@ Future<void> main(List<String> args) async {
   final server = McpServer(
     const Implementation(name: 'dart-acp-mcp', version: '0.1.0'),
     options: const ServerOptions(
-      capabilities: ServerCapabilities(
-        tools: ServerCapabilitiesTools(),
-        resources: ServerCapabilitiesResources(),
-      ),
+      capabilities: ServerCapabilities(tools: ServerCapabilitiesTools(), resources: ServerCapabilitiesResources()),
     ),
   );
 
@@ -23,8 +20,7 @@ Future<void> main(List<String> args) async {
   server.tool(
     'ping',
     description: 'Returns pong',
-    callback: ({args, extra}) async =>
-        CallToolResult.fromContent(const [TextContent(text: 'pong')]),
+    callback: ({args, extra}) async => CallToolResult.fromContent(const [TextContent(text: 'pong')]),
   );
 
   // Register a read_file tool: { path: string }
@@ -32,31 +28,19 @@ Future<void> main(List<String> args) async {
     'read-file',
     description: 'Read a text file and return content',
     toolInputSchema: ToolInputSchema(
-      properties: {
-        'path': JsonSchema.string(
-          description: 'Absolute path to the file to read',
-        ),
-      },
+      properties: {'path': JsonSchema.string(description: 'Absolute path to the file to read')},
       required: const ['path'],
     ),
     callback: ({args, extra}) async {
       final path = args?['path'];
       if (path is! String || path.trim().isEmpty) {
-        return const CallToolResult(
-          content: [TextContent(text: 'Invalid path')],
-          isError: true,
-        );
+        return const CallToolResult(content: [TextContent(text: 'Invalid path')], isError: true);
       }
       try {
         final content = await File(path).readAsString();
-        return CallToolResult.fromContent(
-          [TextContent(text: content)],
-        );
+        return CallToolResult.fromContent([TextContent(text: content)]);
       } on Exception catch (e) {
-        return CallToolResult(
-          content: [TextContent(text: 'Error: $e')],
-          isError: true,
-        );
+        return CallToolResult(content: [TextContent(text: 'Error: $e')], isError: true);
       }
     },
   );
@@ -66,27 +50,17 @@ Future<void> main(List<String> args) async {
     'list-files',
     description: 'List files in a directory (non-recursive)',
     toolInputSchema: ToolInputSchema(
-      properties: {
-        'path': JsonSchema.string(
-          description: 'Absolute path to a directory to list',
-        ),
-      },
+      properties: {'path': JsonSchema.string(description: 'Absolute path to a directory to list')},
       required: const ['path'],
     ),
     callback: ({args, extra}) async {
       final path = args?['path'];
       if (path is! String || path.trim().isEmpty) {
-        return const CallToolResult(
-          content: [TextContent(text: 'Invalid path')],
-          isError: true,
-        );
+        return const CallToolResult(content: [TextContent(text: 'Invalid path')], isError: true);
       }
       final dir = Directory(path);
       if (!dir.existsSync()) {
-        return CallToolResult(
-          content: [TextContent(text: 'Directory does not exist: $path')],
-          isError: true,
-        );
+        return CallToolResult(content: [TextContent(text: 'Directory does not exist: $path')], isError: true);
       }
       try {
         final entries = await dir.list(followLinks: false).toList();
@@ -100,14 +74,9 @@ Future<void> main(List<String> args) async {
                 : (type == FileSystemEntityType.file ? 'file' : 'other'),
           });
         }
-        return CallToolResult.fromStructuredContent(
-          {'files': files},
-        );
+        return CallToolResult.fromStructuredContent({'files': files});
       } on Exception catch (e) {
-        return CallToolResult(
-          content: [TextContent(text: 'Error: $e')],
-          isError: true,
-        );
+        return CallToolResult(content: [TextContent(text: 'Error: $e')], isError: true);
       }
     },
   );

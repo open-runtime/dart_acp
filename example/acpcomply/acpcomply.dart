@@ -16,16 +16,8 @@ import '../acpcli/settings.dart' as cli_settings;
 /// stdout.
 Future<void> main([List<String> argv = const []]) async {
   final parser = ArgParser()
-    ..addFlag(
-      'list-tests',
-      negatable: false,
-      help: 'List available tests and exit',
-    )
-    ..addMultiOption(
-      'test',
-      abbr: 't',
-      help: 'Run only the specified test id(s)',
-    )
+    ..addFlag('list-tests', negatable: false, help: 'List available tests and exit')
+    ..addMultiOption('test', abbr: 't', help: 'Run only the specified test id(s)')
     ..addOption(
       'outputmode',
       abbr: 'o',
@@ -34,12 +26,7 @@ Future<void> main([List<String> argv = const []]) async {
       help: 'Output mode: text (default) or json/jsonl',
     )
     ..addOption('agent', abbr: 'a', help: 'Run only the specified agent')
-    ..addFlag(
-      'verbose',
-      abbr: 'v',
-      negatable: false,
-      help: 'Print JSON-RPC I/O and expectation diagnostics',
-    );
+    ..addFlag('verbose', abbr: 'v', negatable: false, help: 'Print JSON-RPC I/O and expectation diagnostics');
   late ArgResults args;
   try {
     args = parser.parse(argv);
@@ -49,16 +36,9 @@ Future<void> main([List<String> argv = const []]) async {
     exit(2);
   }
   final settings = await cli_settings.Settings.loadFromScriptDir();
-  final testsDir = File.fromUri(
-    Platform.script,
-  ).parent.uri.resolve('compliance-tests/').toFilePath();
-  final testFiles =
-      Directory(testsDir)
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.jsont'))
-          .toList()
-        ..sort((a, b) => a.path.compareTo(b.path));
+  final testsDir = File.fromUri(Platform.script).parent.uri.resolve('compliance-tests/').toFilePath();
+  final testFiles = Directory(testsDir).listSync().whereType<File>().where((f) => f.path.endsWith('.jsont')).toList()
+    ..sort((a, b) => a.path.compareTo(b.path));
 
   if (testFiles.isEmpty) {
     stderr.writeln('No tests found in $testsDir');
@@ -82,10 +62,7 @@ Future<void> main([List<String> argv = const []]) async {
   final onlyAgent = args['agent'] as String?;
   final agents = onlyAgent == null
       ? settings.agentServers
-      : {
-          if (settings.agentServers.containsKey(onlyAgent))
-            onlyAgent: settings.agentServers[onlyAgent]!,
-        };
+      : {if (settings.agentServers.containsKey(onlyAgent)) onlyAgent: settings.agentServers[onlyAgent]!};
   if (onlyAgent != null && agents.isEmpty) {
     stderr.writeln('Error: agent "$onlyAgent" not found in settings.json');
     exit(2);
@@ -130,8 +107,7 @@ Future<void> main([List<String> argv = const []]) async {
     final id = tf.uri.pathSegments.last.replaceAll('.jsont', '');
     final title = (j['title'] as String?)?.trim() ?? '';
     final description = (j['description'] as String?)?.trim() ?? '';
-    final docsList =
-        (j['docs'] as List?)?.whereType<String>().toList() ?? const [];
+    final docsList = (j['docs'] as List?)?.whereType<String>().toList() ?? const [];
     final steps = (j['steps'] as List?)?.cast<Map<String, dynamic>>();
 
     final issues = <String>[];
@@ -163,8 +139,7 @@ Future<void> main([List<String> argv = const []]) async {
         jsonEncode({
           'type': 'agent_header',
           'agent': agentName,
-          if (profile.protocolVersion != null)
-            'protocolVersion': profile.protocolVersion,
+          if (profile.protocolVersion != null) 'protocolVersion': profile.protocolVersion,
           'agentCapabilities': profile.agentCapabilities,
           'authMethods': profile.authMethods,
           'modes': {'named': profile.modeNames, 'ids': profile.modes.toList()},
@@ -178,20 +153,14 @@ Future<void> main([List<String> argv = const []]) async {
         stdout.writeln('- protocolVersion: ${profile.protocolVersion}');
       }
       if (profile.agentCapabilities.isNotEmpty) {
-        stdout.writeln(
-          '- agentCapabilities: ${jsonEncode(profile.agentCapabilities)}',
-        );
+        stdout.writeln('- agentCapabilities: ${jsonEncode(profile.agentCapabilities)}');
       }
       if (profile.authMethods.isNotEmpty) {
         stdout.writeln('- authMethods: ${jsonEncode(profile.authMethods)}');
       }
       if (profile.modeNames.isNotEmpty || profile.modes.isNotEmpty) {
         final modesList =
-            profile.modeNames.entries
-                .map(
-                  (e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}',
-                )
-                .toList()
+            profile.modeNames.entries.map((e) => '${e.key}${e.value.isNotEmpty ? ' (${e.value})' : ''}').toList()
               ..sort();
         final extras = profile.modes.difference(profile.modeNames.keys.toSet());
         final combined = [...modesList, ...extras];
@@ -223,9 +192,7 @@ Future<void> main([List<String> argv = const []]) async {
       final testId = tf.uri.pathSegments.last.replaceAll('.jsont', '');
       final title = (testJson['title'] as String?)?.trim();
       final description =
-          (testJson['description'] as String?)?.trim() ??
-          (testJson['title'] as String?)?.trim() ??
-          testId;
+          (testJson['description'] as String?)?.trim() ?? (testJson['title'] as String?)?.trim() ?? testId;
 
       // Print per-test header before running (progress visibility)
       final headerTitle = title ?? testId;
@@ -310,9 +277,7 @@ Future<void> main([List<String> argv = const []]) async {
             }
             stdout.writeln('- expected: ${jsonEncode(unmet.expected)}');
             if (unmet.closestActual != null) {
-              stdout.writeln(
-                '- closest_actual: ${jsonEncode(unmet.closestActual)}',
-              );
+              stdout.writeln('- closest_actual: ${jsonEncode(unmet.closestActual)}');
             }
             if (unmet.diff.isNotEmpty) {
               stdout.writeln('- diff:');
@@ -326,9 +291,7 @@ Future<void> main([List<String> argv = const []]) async {
           stdout.writeln();
           stdout.writeln('Forbidden request observed:');
           stdout.writeln('- method: ${report.forbidViolation!['method']}');
-          stdout.writeln(
-            '- message: ${jsonEncode(report.forbidViolation!['message'])}',
-          );
+          stdout.writeln('- message: ${jsonEncode(report.forbidViolation!['message'])}');
         }
 
         // I/O context omitted by request
@@ -352,12 +315,7 @@ Future<void> main([List<String> argv = const []]) async {
 }
 
 class _UnmetExpectation {
-  _UnmetExpectation({
-    required this.expected,
-    required this.kind,
-    this.closestActual,
-    this.diff = const <String>[],
-  });
+  _UnmetExpectation({required this.expected, required this.kind, this.closestActual, this.diff = const <String>[]});
 
   final Map<String, dynamic> expected;
   final String kind; // response | notification | clientRequest
@@ -404,9 +362,7 @@ class _AgentProfile {
   final Set<String> commands = <String>{};
 }
 
-Future<_AgentProfile> _collectAgentProfile(
-  cli_settings.AgentServerConfig agentCfg,
-) async {
+Future<_AgentProfile> _collectAgentProfile(cli_settings.AgentServerConfig agentCfg) async {
   final profile = _AgentProfile();
   final sandbox = await Directory.systemTemp.createTemp('acpcomply-probe-');
   try {
@@ -425,9 +381,7 @@ Future<_AgentProfile> _collectAgentProfile(
       agentCommand: agentCfg.command,
       agentArgs: agentCfg.args,
       envOverrides: agentCfg.env,
-      capabilities: const AcpCapabilities(
-        fs: FsCapabilities(readTextFile: true, writeTextFile: true),
-      ),
+      capabilities: const AcpCapabilities(fs: FsCapabilities(readTextFile: true, writeTextFile: true)),
       fsProvider: const _DummyFsProvider(),
       permissionProvider: const DefaultPermissionProvider(),
       terminalProvider: DefaultTerminalProvider(),
@@ -498,9 +452,7 @@ Future<_TestReport> _runSingleTest(
     // Create sandbox files
     final sandboxDecl = test['sandbox'] as Map<String, dynamic>?;
     if (sandboxDecl != null) {
-      final files =
-          (sandboxDecl['files'] as List?)?.cast<Map<String, dynamic>>() ??
-          const [];
+      final files = (sandboxDecl['files'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
       for (final f in files) {
         final p = f['path'] as String;
         final file = File('${sandbox.path}${Platform.pathSeparator}$p');
@@ -521,9 +473,7 @@ Future<_TestReport> _runSingleTest(
     for (final s in stepsArr) {
       final ns = s['newSession'] as Map<String, dynamic>?;
       if (ns != null && ns['mcpServers'] is List) {
-        mcpServers = (ns['mcpServers'] as List)
-            .map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e))
-            .toList();
+        mcpServers = (ns['mcpServers'] as List).map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList();
         break;
       }
     }
@@ -533,11 +483,9 @@ Future<_TestReport> _runSingleTest(
     final capsOverride = init?['clientCapabilities'] as Map<String, dynamic>?;
     final fsCaps = capsOverride?['fs'] as Map<String, dynamic>?;
     final readCap = fsCaps == null || (fsCaps['readTextFile'] as bool? ?? true);
-    final writeCap =
-        fsCaps == null || (fsCaps['writeTextFile'] as bool? ?? true);
+    final writeCap = fsCaps == null || (fsCaps['writeTextFile'] as bool? ?? true);
 
-    final policy =
-        (init?['permissionPolicy'] as String?)?.toLowerCase().trim() ?? 'yolo';
+    final policy = (init?['permissionPolicy'] as String?)?.toLowerCase().trim() ?? 'yolo';
 
     PermissionOutcome decideByPolicy(PermissionOptions opts) {
       final kind = (opts.toolKind ?? '').toLowerCase();
@@ -551,10 +499,7 @@ Future<_TestReport> _runSingleTest(
           }
           return PermissionOutcome.deny;
         case 'write':
-          if (kind == 'read' ||
-              kind == 'write' ||
-              name.contains('read') ||
-              name.contains('write')) {
+          if (kind == 'read' || kind == 'write' || name.contains('read') || name.contains('write')) {
             return PermissionOutcome.allow;
           }
           return PermissionOutcome.deny;
@@ -631,9 +576,7 @@ Future<_TestReport> _runSingleTest(
 
     try {
       // Initialize if not sent by the test
-      final sendsInit = stepsArr.any(
-        (s) => (s['send'] as Map<String, dynamic>?)?['method'] == 'initialize',
-      );
+      final sendsInit = stepsArr.any((s) => (s['send'] as Map<String, dynamic>?)?['method'] == 'initialize');
       var agentCaps = const <String, dynamic>{};
       if (!sendsInit) {
         final initR = await client.initialize();
@@ -646,9 +589,7 @@ Future<_TestReport> _runSingleTest(
       }
 
       // Evaluate preconditions (agent capabilities) if present
-      final preconditions =
-          (test['preconditions'] as List?)?.cast<Map<String, dynamic>>() ??
-          const [];
+      final preconditions = (test['preconditions'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
       for (final pre in preconditions) {
         final capPath = pre['agentCap'] as String?;
         if (capPath != null) {
@@ -685,12 +626,9 @@ Future<_TestReport> _runSingleTest(
         }),
       };
 
-      Future<({bool ok, List<_UnmetExpectation> unmet})> waitExpect(
-        Map<String, dynamic> expect,
-      ) async {
+      Future<({bool ok, List<_UnmetExpectation> unmet})> waitExpect(Map<String, dynamic> expect) async {
         final timeoutMs = (expect['timeoutMs'] as num?)?.toInt() ?? 10000;
-        final messages = (expect['messages'] as List)
-            .cast<Map<String, dynamic>>();
+        final messages = (expect['messages'] as List).cast<Map<String, dynamic>>();
         final start = DateTime.now();
         final matched = List<bool>.filled(messages.length, false);
         final unmet = <_UnmetExpectation>[];
@@ -706,17 +644,10 @@ Future<_TestReport> _runSingleTest(
               final ok = inbound.any((m) => _partialMatch(m, resp));
               matched[i] = ok;
             } else if (notif != null) {
-              final ok = inbound.any(
-                (m) =>
-                    m['method'] == notif['method'] && _partialMatch(m, notif),
-              );
+              final ok = inbound.any((m) => m['method'] == notif['method'] && _partialMatch(m, notif));
               matched[i] = ok;
             } else if (clientReq != null) {
-              final ok = inbound.any(
-                (m) =>
-                    m['method'] == clientReq['method'] &&
-                    _partialMatch(m, clientReq),
-              );
+              final ok = inbound.any((m) => m['method'] == clientReq['method'] && _partialMatch(m, clientReq));
               matched[i] = ok;
               // NOTE: replies are handled by providers; test-specified replies
               // are ignored here
@@ -732,30 +663,18 @@ Future<_TestReport> _runSingleTest(
           if (matched[i]) continue;
           final env = _interpolateVars(messages[i], vars);
           final kind = env.keys.firstWhere(
-            (k) =>
-                k == 'response' || k == 'notification' || k == 'clientRequest',
+            (k) => k == 'response' || k == 'notification' || k == 'clientRequest',
             orElse: () => 'unknown',
           );
           final expected = Map<String, dynamic>.from(env[kind] as Map);
           final closest = _closestActual(expected, kind, inbound);
-          final diffs = closest == null
-              ? <String>['no similar message observed']
-              : _diffPartial(closest, expected);
-          unmet.add(
-            _UnmetExpectation(
-              expected: expected,
-              kind: kind,
-              closestActual: closest,
-              diff: diffs,
-            ),
-          );
+          final diffs = closest == null ? <String>['no similar message observed'] : _diffPartial(closest, expected);
+          unmet.add(_UnmetExpectation(expected: expected, kind: kind, closestActual: closest, diff: diffs));
         }
         return (ok: false, unmet: unmet);
       }
 
-      Future<({bool ok, Map<String, dynamic>? violation})> waitForbid(
-        Map<String, dynamic> forbid,
-      ) async {
+      Future<({bool ok, Map<String, dynamic>? violation})> waitForbid(Map<String, dynamic> forbid) async {
         final timeoutMs = (forbid['timeoutMs'] as num?)?.toInt() ?? 5000;
         final methods = (forbid['methods'] as List).cast<String>();
         final startSize = inbound.length;
@@ -777,9 +696,7 @@ Future<_TestReport> _runSingleTest(
 
       for (final step in steps) {
         if (step.containsKey('delayMs')) {
-          await Future.delayed(
-            Duration(milliseconds: (step['delayMs'] as num).toInt()),
-          );
+          await Future.delayed(Duration(milliseconds: (step['delayMs'] as num).toInt()));
           continue;
         }
         if (step.containsKey('newSession')) {
@@ -817,10 +734,7 @@ Future<_TestReport> _runSingleTest(
           final send = step['send'] as Map<String, dynamic>;
           final method = send['method'] as String;
           final expectError = send['expectError'] as bool? ?? false;
-          final params = _interpolateVars(
-            send['params'] as Map<String, dynamic>? ?? const {},
-            vars,
-          );
+          final params = _interpolateVars(send['params'] as Map<String, dynamic>? ?? const {}, vars);
           final hasId = send.containsKey('id');
           if (hasId) {
             if (expectError) {
@@ -848,10 +762,7 @@ Future<_TestReport> _runSingleTest(
         if (step.containsKey('forbid')) {
           final res = await waitForbid(step['forbid'] as Map<String, dynamic>);
           if (!res.ok && forbidViolation == null) {
-            forbidViolation = {
-              'method': res.violation?['method'],
-              'message': res.violation,
-            };
+            forbidViolation = {'method': res.violation?['method'], 'message': res.violation};
           }
           continue;
         }
@@ -948,10 +859,7 @@ bool _partialMatch(Map<String, dynamic> actual, Map<String, dynamic> expected) {
       for (final want in v) {
         final matched = av.any((got) {
           if (want is Map && got is Map) {
-            return _partialMatch(
-              Map<String, dynamic>.from(got),
-              Map<String, dynamic>.from(want),
-            );
+            return _partialMatch(Map<String, dynamic>.from(got), Map<String, dynamic>.from(want));
           }
           return _matchLeaf(got, want);
         });
@@ -974,11 +882,7 @@ bool _matchLeaf(dynamic actual, dynamic pattern) {
   }
 }
 
-List<String> _diffPartial(
-  Map<String, dynamic> actual,
-  Map<String, dynamic> expected, [
-  String basePath = '',
-]) {
+List<String> _diffPartial(Map<String, dynamic> actual, Map<String, dynamic> expected, [String basePath = '']) {
   final diffs = <String>[];
 
   for (final entry in expected.entries) {
@@ -997,17 +901,12 @@ List<String> _diffPartial(
       for (final want in v) {
         final matchFound = av.any((got) {
           if (want is Map && got is Map) {
-            return _partialMatch(
-              Map<String, dynamic>.from(got),
-              Map<String, dynamic>.from(want),
-            );
+            return _partialMatch(Map<String, dynamic>.from(got), Map<String, dynamic>.from(want));
           }
           return _matchLeaf(got, want);
         });
         if (!matchFound) {
-          final wantStr = want is Map || want is List
-              ? jsonEncode(want)
-              : _stringify(want);
+          final wantStr = want is Map || want is List ? jsonEncode(want) : _stringify(want);
           diffs.add("no matching element for '$path[]' expected $wantStr");
         }
       }
@@ -1023,11 +922,7 @@ List<String> _diffPartial(
   return diffs;
 }
 
-Map<String, dynamic>? _closestActual(
-  Map<String, dynamic> expected,
-  String kind,
-  List<Map<String, dynamic>> inbound,
-) {
+Map<String, dynamic>? _closestActual(Map<String, dynamic> expected, String kind, List<Map<String, dynamic>> inbound) {
   if (inbound.isEmpty) return null;
   if (kind == 'response') {
     final expId = expected['id'];
@@ -1079,16 +974,10 @@ dynamic _readPath(Map<String, dynamic> obj, String path) {
   return cur;
 }
 
-Map<String, dynamic> _interpolateVars(
-  Map<String, dynamic> params,
-  Map<String, String> vars,
-) {
+Map<String, dynamic> _interpolateVars(Map<String, dynamic> params, Map<String, String> vars) {
   dynamic subst(dynamic v) {
     if (v is String) {
-      return v.replaceAllMapped(
-        RegExp(r'\$\{([a-zA-Z0-9_]+)\}'),
-        (m) => vars[m.group(1)] ?? m.group(0)!,
-      );
+      return v.replaceAllMapped(RegExp(r'\$\{([a-zA-Z0-9_]+)\}'), (m) => vars[m.group(1)] ?? m.group(0)!);
     }
     if (v is Map<String, dynamic>) {
       return v.map((k, vv) => MapEntry(k, subst(vv)));
@@ -1120,9 +1009,7 @@ class _DummyFsProvider implements FsProvider {
 // flows.
 
 List<String> _extractLinks(Map<String, dynamic> test) =>
-    ((test['docs'] as List?)?.cast<String>() ?? const <String>[])
-        .where((s) => s.trim().isNotEmpty)
-        .toList();
+    ((test['docs'] as List?)?.cast<String>() ?? const <String>[]).where((s) => s.trim().isNotEmpty).toList();
 
 final List<StreamSubscription> _activeSubscriptions = <StreamSubscription>[];
 void _cancelActiveSubscriptions() {

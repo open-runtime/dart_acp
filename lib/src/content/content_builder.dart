@@ -12,10 +12,7 @@ class ContentBuilder {
   /// - @-mentions for files: @file.txt, @"path with spaces/file.txt"
   /// - @-mentions for URLs: @https://example.com/file
   /// - Tilde expansion: @~/Documents/file.txt
-  static List<Map<String, dynamic>> buildFromPrompt(
-    String prompt, {
-    String? workspaceRoot,
-  }) {
+  static List<Map<String, dynamic>> buildFromPrompt(String prompt, {String? workspaceRoot}) {
     final blocks = <Map<String, dynamic>>[];
 
     // Always include the original user text with @-mentions untouched
@@ -30,8 +27,7 @@ class ContentBuilder {
       if (uri == null) continue; // Skip malformed mentions
 
       final name = _displayNameFor(uri);
-      final mimeType =
-          mime.lookupMimeType(uri.path) ?? mime.lookupMimeType(uri.toString());
+      final mimeType = mime.lookupMimeType(uri.path) ?? mime.lookupMimeType(uri.toString());
 
       final block = {
         'type': 'resource_link',
@@ -45,9 +41,7 @@ class ContentBuilder {
     return blocks;
   }
 
-  static final _mentionRe = RegExp(
-    r'''@("([^"\\]|\\.)*"|'([^'\\]|\\.)*'|\S+)''',
-  );
+  static final _mentionRe = RegExp(r'''@("([^"\\]|\\.)*"|'([^'\\]|\\.)*'|\S+)''');
 
   static List<String> _extractMentions(String text) {
     final matches = _mentionRe.allMatches(text);
@@ -56,8 +50,7 @@ class ContentBuilder {
     for (final match in matches) {
       var token = match.group(1)!;
       // Strip surrounding quotes and unescape simple escapes
-      if ((token.startsWith('"') && token.endsWith('"')) ||
-          (token.startsWith("'") && token.endsWith("'"))) {
+      if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
         token = token.substring(1, token.length - 1);
       }
       mentions.add(token);

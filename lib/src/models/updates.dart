@@ -19,8 +19,7 @@ class PlanUpdate extends AcpUpdate {
   const PlanUpdate(this.plan);
 
   /// Create from raw JSON.
-  factory PlanUpdate.fromJson(Map<String, dynamic> json) =>
-      PlanUpdate(Plan.fromJson(json));
+  factory PlanUpdate.fromJson(Map<String, dynamic> json) => PlanUpdate(Plan.fromJson(json));
 
   /// The execution plan.
   final Plan plan;
@@ -32,11 +31,7 @@ class PlanUpdate extends AcpUpdate {
 /// Streaming message delta, for user/assistant content blocks.
 class MessageDelta extends AcpUpdate {
   /// Create a message delta.
-  const MessageDelta({
-    required this.role,
-    required this.content,
-    this.isThought = false,
-  });
+  const MessageDelta({required this.role, required this.content, this.isThought = false});
 
   /// Create from raw content blocks.
   factory MessageDelta.fromRaw({
@@ -75,15 +70,13 @@ class ToolCallUpdate extends AcpUpdate {
   const ToolCallUpdate(this.toolCall);
 
   /// Create from raw JSON.
-  factory ToolCallUpdate.fromJson(Map<String, dynamic> json) =>
-      ToolCallUpdate(ToolCall.fromJson(json));
+  factory ToolCallUpdate.fromJson(Map<String, dynamic> json) => ToolCallUpdate(ToolCall.fromJson(json));
 
   /// The tool call information.
   final ToolCall toolCall;
 
   @override
-  String get text =>
-      '[Tool: ${toolCall.title ?? toolCall.toolCallId}] ${toolCall.status}';
+  String get text => '[Tool: ${toolCall.title ?? toolCall.toolCallId}] ${toolCall.status}';
 }
 
 /// File diff update with proposed changes.
@@ -92,8 +85,7 @@ class DiffUpdate extends AcpUpdate {
   const DiffUpdate(this.diff);
 
   /// Create from raw JSON.
-  factory DiffUpdate.fromJson(Map<String, dynamic> json) =>
-      DiffUpdate(Diff.fromJson(json));
+  factory DiffUpdate.fromJson(Map<String, dynamic> json) => DiffUpdate(Diff.fromJson(json));
 
   /// The diff information.
   final Diff diff;
@@ -145,8 +137,7 @@ class UnknownUpdate extends AcpUpdate {
   final Map<String, dynamic> raw;
 
   @override
-  String get text =>
-      '[Unknown update: ${raw['sessionUpdate'] ?? 'unspecified'}]';
+  String get text => '[Unknown update: ${raw['sessionUpdate'] ?? 'unspecified'}]';
 }
 
 /// Mode update indicating current session mode changed (extension).

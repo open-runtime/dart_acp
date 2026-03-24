@@ -13,8 +13,7 @@ void main() {
       ws = await Directory.systemTemp.createTemp('fsjail_');
       inside = File('${ws.path}/inside.txt')..writeAsStringSync('hello');
       // place outside in system temp root (sibling to ws)
-      outside = File('${Directory.systemTemp.path}/outside.txt')
-        ..writeAsStringSync('world');
+      outside = File('${Directory.systemTemp.path}/outside.txt')..writeAsStringSync('world');
     });
 
     tearDown(() async {
@@ -26,33 +25,18 @@ void main() {
     });
 
     test('read inside workspace succeeds; outside denied by default', () async {
-      final fs = DefaultFsProvider(
-        workspaceRoot: ws.path,
-        allowReadOutsideWorkspace: false,
-      );
+      final fs = DefaultFsProvider(workspaceRoot: ws.path, allowReadOutsideWorkspace: false);
       final text = await fs.readTextFile(inside.path);
       expect(text, 'hello');
-      expect(
-        () => fs.readTextFile(outside.path),
-        throwsA(isA<FileSystemException>()),
-      );
+      expect(() => fs.readTextFile(outside.path), throwsA(isA<FileSystemException>()));
     });
 
-    test(
-      'read outside allowed when yolo enabled; write still denied',
-      () async {
-        final fs = DefaultFsProvider(
-          workspaceRoot: ws.path,
-          allowReadOutsideWorkspace: true,
-        );
-        final text = await fs.readTextFile(outside.path);
-        expect(text, 'world');
-        // write attempt outside should be blocked
-        await expectLater(
-          () => fs.writeTextFile(outside.path, 'nope'),
-          throwsA(isA<FileSystemException>()),
-        );
-      },
-    );
+    test('read outside allowed when yolo enabled; write still denied', () async {
+      final fs = DefaultFsProvider(workspaceRoot: ws.path, allowReadOutsideWorkspace: true);
+      final text = await fs.readTextFile(outside.path);
+      expect(text, 'world');
+      // write attempt outside should be blocked
+      await expectLater(() => fs.writeTextFile(outside.path, 'nope'), throwsA(isA<FileSystemException>()));
+    });
   });
 }

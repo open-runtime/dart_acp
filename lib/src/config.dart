@@ -7,11 +7,7 @@ import 'providers/terminal_provider.dart';
 /// Collection of timeout knobs for ACP requests.
 class AcpTimeouts {
   /// Create timeouts; all optional.
-  const AcpTimeouts({
-    this.initialize = const Duration(seconds: 15),
-    this.prompt,
-    this.permission,
-  });
+  const AcpTimeouts({this.initialize = const Duration(seconds: 15), this.prompt, this.permission});
 
   /// Initialize call timeout.
   final Duration initialize;
@@ -41,8 +37,7 @@ class AcpConfig {
     this.onProtocolOut,
     this.onProtocolIn,
   }) : logger = logger ?? Logger('dart_acp'),
-       permissionProvider =
-           permissionProvider ?? const DefaultPermissionProvider();
+       permissionProvider = permissionProvider ?? const DefaultPermissionProvider();
 
   /// Manually maintained minimum protocol version required by this client.
   /// Bump this constant only when you add support for a future breaking spec.

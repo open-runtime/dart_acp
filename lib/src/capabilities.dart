@@ -1,11 +1,7 @@
 /// Advertised client capabilities in ACP initialization.
 class AcpCapabilities {
   /// Create capabilities; defaults to read-only file system support.
-  const AcpCapabilities({
-    this.fs = const FsCapabilities(),
-    this.terminal = false,
-    this.meta,
-  });
+  const AcpCapabilities({this.fs = const FsCapabilities(), this.terminal = false, this.meta});
 
   /// File system capability flags.
   final FsCapabilities fs;
@@ -35,15 +31,8 @@ class AcpCapabilities {
   };
 
   /// Create a copy with modifications.
-  AcpCapabilities copyWith({
-    FsCapabilities? fs,
-    bool? terminal,
-    Map<String, dynamic>? meta,
-  }) => AcpCapabilities(
-    fs: fs ?? this.fs,
-    terminal: terminal ?? this.terminal,
-    meta: meta ?? this.meta,
-  );
+  AcpCapabilities copyWith({FsCapabilities? fs, bool? terminal, Map<String, dynamic>? meta}) =>
+      AcpCapabilities(fs: fs ?? this.fs, terminal: terminal ?? this.terminal, meta: meta ?? this.meta);
 }
 
 /// File system capability flags for client-provided fs methods.
@@ -58,8 +47,5 @@ class FsCapabilities {
   final bool writeTextFile;
 
   /// JSON representation used in `clientCapabilities.fs`.
-  Map<String, dynamic> toJson() => {
-    'readTextFile': readTextFile,
-    'writeTextFile': writeTextFile,
-  };
+  Map<String, dynamic> toJson() => {'readTextFile': readTextFile, 'writeTextFile': writeTextFile};
 }

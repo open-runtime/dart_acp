@@ -9,22 +9,14 @@
 /// Information about a session returned by session/list.
 class SessionInfo {
   /// Creates a session info.
-  const SessionInfo({
-    required this.sessionId,
-    required this.cwd,
-    this.title,
-    this.updatedAt,
-    this.meta,
-  });
+  const SessionInfo({required this.sessionId, required this.cwd, this.title, this.updatedAt, this.meta});
 
   /// Creates from JSON response.
   factory SessionInfo.fromJson(Map<String, dynamic> json) => SessionInfo(
     sessionId: json['sessionId'] as String,
     cwd: json['cwd'] as String,
     title: json['title'] as String?,
-    updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'] as String)
-        : null,
+    updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     meta: json['_meta'] as Map<String, dynamic>?,
   );
 
@@ -65,9 +57,7 @@ class SessionListResult {
   factory SessionListResult.fromJson(Map<String, dynamic> json) {
     final sessionsList = json['sessions'] as List<dynamic>? ?? [];
     return SessionListResult(
-      sessions: sessionsList
-          .map((s) => SessionInfo.fromJson(s as Map<String, dynamic>))
-          .toList(),
+      sessions: sessionsList.map((s) => SessionInfo.fromJson(s as Map<String, dynamic>)).toList(),
       nextCursor: json['nextCursor'] as String?,
     );
   }
@@ -82,8 +72,7 @@ class SessionListResult {
   bool get hasMore => nextCursor != null;
 
   @override
-  String toString() =>
-      'SessionListResult(${sessions.length} sessions, hasMore: $hasMore)';
+  String toString() => 'SessionListResult(${sessions.length} sessions, hasMore: $hasMore)';
 }
 
 /// A configuration option available for a session.
@@ -107,9 +96,7 @@ class ConfigOption {
       name: json['name'] as String,
       type: json['type'] as String,
       currentValue: json['currentValue'] as String,
-      options: optionsList
-          .map((o) => ConfigOptionChoice.fromJson(o as Map<String, dynamic>))
-          .toList(),
+      options: optionsList.map((o) => ConfigOptionChoice.fromJson(o as Map<String, dynamic>)).toList(),
       description: json['description'] as String?,
       group: json['group'] as String?,
     );
@@ -154,19 +141,14 @@ class ConfigOption {
 /// A choice within a config option.
 class ConfigOptionChoice {
   /// Creates a config option choice.
-  const ConfigOptionChoice({
-    required this.value,
-    required this.name,
-    this.description,
-  });
+  const ConfigOptionChoice({required this.value, required this.name, this.description});
 
   /// Creates from JSON.
-  factory ConfigOptionChoice.fromJson(Map<String, dynamic> json) =>
-      ConfigOptionChoice(
-        value: json['value'] as String,
-        name: json['name'] as String,
-        description: json['description'] as String?,
-      );
+  factory ConfigOptionChoice.fromJson(Map<String, dynamic> json) => ConfigOptionChoice(
+    value: json['value'] as String,
+    name: json['name'] as String,
+    description: json['description'] as String?,
+  );
 
   /// The value to send when selecting this option.
   final String value;
@@ -178,11 +160,7 @@ class ConfigOptionChoice {
   final String? description;
 
   /// Convert to JSON.
-  Map<String, dynamic> toJson() => {
-    'value': value,
-    'name': name,
-    if (description != null) 'description': description,
-  };
+  Map<String, dynamic> toJson() => {'value': value, 'name': name, if (description != null) 'description': description};
 
   @override
   String toString() => 'ConfigOptionChoice($value: $name)';
@@ -198,9 +176,7 @@ class SessionResult {
     final configList = json['configOptions'] as List<dynamic>?;
     return SessionResult(
       sessionId: json['sessionId'] as String,
-      configOptions: configList
-          ?.map((c) => ConfigOption.fromJson(c as Map<String, dynamic>))
-          .toList(),
+      configOptions: configList?.map((c) => ConfigOption.fromJson(c as Map<String, dynamic>)).toList(),
       meta: json['_meta'] as Map<String, dynamic>?,
     );
   }
@@ -221,12 +197,7 @@ class SessionResult {
 /// Session capabilities advertised by an agent.
 class SessionCapabilities {
   /// Creates session capabilities.
-  const SessionCapabilities({
-    this.list = false,
-    this.resume = false,
-    this.fork = false,
-    this.configOptions = false,
-  });
+  const SessionCapabilities({this.list = false, this.resume = false, this.fork = false, this.configOptions = false});
 
   /// Creates from the agentCapabilities map.
   factory SessionCapabilities.fromJson(Map<String, dynamic>? agentCaps) {

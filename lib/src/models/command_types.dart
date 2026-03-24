@@ -19,25 +19,15 @@ class AvailableCommandInput {
 /// Available command that can be executed.
 class AvailableCommand {
   /// Creates an available command.
-  const AvailableCommand({
-    required this.name,
-    this.description,
-    this.parameters,
-    this.input,
-  });
+  const AvailableCommand({required this.name, this.description, this.parameters, this.input});
 
   /// Create from JSON.
-  factory AvailableCommand.fromJson(Map<String, dynamic> json) =>
-      AvailableCommand(
-        name: json['name'] as String? ?? '',
-        description: json['description'] as String?,
-        parameters: json['parameters'] as Map<String, dynamic>?,
-        input: json['input'] != null
-            ? AvailableCommandInput.fromJson(
-                json['input'] as Map<String, dynamic>,
-              )
-            : null,
-      );
+  factory AvailableCommand.fromJson(Map<String, dynamic> json) => AvailableCommand(
+    name: json['name'] as String? ?? '',
+    description: json['description'] as String?,
+    parameters: json['parameters'] as Map<String, dynamic>?,
+    input: json['input'] != null ? AvailableCommandInput.fromJson(json['input'] as Map<String, dynamic>) : null,
+  );
 
   /// Name/identifier of the command.
   final String name;
@@ -129,12 +119,7 @@ enum PlanEntryStatus {
 /// A entry in an execution plan.
 class PlanEntry {
   /// Creates a plan entry.
-  const PlanEntry({
-    required this.content,
-    required this.priority,
-    required this.status,
-    this.metadata,
-  });
+  const PlanEntry({required this.content, required this.priority, required this.status, this.metadata});
 
   /// Create from JSON.
   factory PlanEntry.fromJson(Map<String, dynamic> json) => PlanEntry(
@@ -168,20 +153,12 @@ class PlanEntry {
 /// Execution plan with structured entries.
 class Plan {
   /// Creates a plan.
-  const Plan({
-    required this.entries,
-    this.title,
-    this.description,
-    this.metadata,
-  });
+  const Plan({required this.entries, this.title, this.description, this.metadata});
 
   /// Create from JSON.
   factory Plan.fromJson(Map<String, dynamic> json) {
     final entriesList =
-        (json['entries'] as List?)
-            ?.map((e) => PlanEntry.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        const [];
+        (json['entries'] as List?)?.map((e) => PlanEntry.fromJson(e as Map<String, dynamic>)).toList() ?? const [];
 
     return Plan(
       entries: entriesList,

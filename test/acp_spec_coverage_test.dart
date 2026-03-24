@@ -26,10 +26,7 @@ void main() {
         // Test all stop reasons from spec
         expect(stopReasonFromWire('end_turn'), equals(StopReason.endTurn));
         expect(stopReasonFromWire('max_tokens'), equals(StopReason.maxTokens));
-        expect(
-          stopReasonFromWire('max_turn_requests'),
-          equals(StopReason.maxTurnRequests),
-        );
+        expect(stopReasonFromWire('max_turn_requests'), equals(StopReason.maxTurnRequests));
         expect(stopReasonFromWire('cancelled'), equals(StopReason.cancelled));
         expect(stopReasonFromWire('refusal'), equals(StopReason.refusal));
         expect(stopReasonFromWire('unknown_reason'), equals(StopReason.other));
@@ -95,16 +92,11 @@ void main() {
         expect(outcomes.length, equals(2));
 
         // Permission outcomes are allow/deny
-        expect(
-          PermissionOutcome.values,
-          containsAll([PermissionOutcome.allow, PermissionOutcome.deny]),
-        );
+        expect(PermissionOutcome.values, containsAll([PermissionOutcome.allow, PermissionOutcome.deny]));
       });
 
       test('permission provider interface', () {
-        final provider = DefaultPermissionProvider(
-          onRequest: (opts) async => PermissionOutcome.allow,
-        );
+        final provider = DefaultPermissionProvider(onRequest: (opts) async => PermissionOutcome.allow);
 
         // Test permission provider exists
         expect(provider.onRequest, isNotNull);
@@ -132,32 +124,12 @@ void main() {
     group('Tool Kinds', () {
       test('all tool kinds from spec are supported', () {
         // All tool kinds from ACP spec
-        final toolKinds = [
-          'read',
-          'edit',
-          'delete',
-          'move',
-          'search',
-          'execute',
-          'think',
-          'fetch',
-          'other',
-        ];
+        final toolKinds = ['read', 'edit', 'delete', 'move', 'search', 'execute', 'think', 'fetch', 'other'];
 
         expect(toolKinds.length, equals(9));
         expect(
           toolKinds,
-          containsAll([
-            'read',
-            'edit',
-            'delete',
-            'move',
-            'search',
-            'execute',
-            'think',
-            'fetch',
-            'other',
-          ]),
+          containsAll(['read', 'edit', 'delete', 'move', 'search', 'execute', 'think', 'fetch', 'other']),
         );
       });
     });
@@ -188,16 +160,8 @@ void main() {
         const plan = PlanUpdate(
           Plan(
             entries: [
-              PlanEntry(
-                content: 'Step 1',
-                priority: PlanEntryPriority.high,
-                status: PlanEntryStatus.pending,
-              ),
-              PlanEntry(
-                content: 'Step 2',
-                priority: PlanEntryPriority.medium,
-                status: PlanEntryStatus.inProgress,
-              ),
+              PlanEntry(content: 'Step 1', priority: PlanEntryPriority.high, status: PlanEntryStatus.pending),
+              PlanEntry(content: 'Step 2', priority: PlanEntryPriority.medium, status: PlanEntryStatus.inProgress),
             ],
           ),
         );
@@ -207,12 +171,7 @@ void main() {
 
       test('ToolCallUpdate contains tool data', () {
         const toolCall = ToolCallUpdate(
-          ToolCall(
-            toolCallId: 'tool-1',
-            status: ToolCallStatus.pending,
-            title: 'read-file',
-            kind: ToolKind.read,
-          ),
+          ToolCall(toolCallId: 'tool-1', status: ToolCallStatus.pending, title: 'read-file', kind: ToolKind.read),
         );
 
         expect(toolCall.toolCall.toolCallId, equals('tool-1'));
@@ -220,14 +179,7 @@ void main() {
       });
 
       test('DiffUpdate contains diff data', () {
-        const diff = DiffUpdate(
-          Diff(
-            id: 'diff-1',
-            status: DiffStatus.started,
-            uri: 'file:///test.txt',
-            changes: [],
-          ),
-        );
+        const diff = DiffUpdate(Diff(id: 'diff-1', status: DiffStatus.started, uri: 'file:///test.txt', changes: []));
 
         expect(diff.diff.uri, equals('file:///test.txt'));
       });
@@ -248,10 +200,7 @@ void main() {
       });
 
       test('UnknownUpdate handles unrecognized updates', () {
-        const unknown = UnknownUpdate({
-          'type': 'future_update_type',
-          'data': 'some data',
-        });
+        const unknown = UnknownUpdate({'type': 'future_update_type', 'data': 'some data'});
 
         expect(unknown.raw['type'], equals('future_update_type'));
       });
@@ -270,8 +219,7 @@ void main() {
         // The jail should allow workspace paths and deny others
         const workspacePath = '/workspace';
         for (final path in testPaths) {
-          final isInWorkspace =
-              path.contains(workspacePath) && !path.contains('..');
+          final isInWorkspace = path.contains(workspacePath) && !path.contains('..');
           if (!isInWorkspace) {
             // Path should be rejected by jail
             expect(path.contains('/etc/') || path.contains('..'), isTrue);
@@ -286,12 +234,8 @@ void main() {
           agentCommand: 'test-agent',
           agentArgs: ['--arg1', '--arg2'],
           envOverrides: {'KEY': 'value'},
-          capabilities: const AcpCapabilities(
-            fs: FsCapabilities(readTextFile: true),
-          ),
-          permissionProvider: DefaultPermissionProvider(
-            onRequest: (opts) async => PermissionOutcome.allow,
-          ),
+          capabilities: const AcpCapabilities(fs: FsCapabilities(readTextFile: true)),
+          permissionProvider: DefaultPermissionProvider(onRequest: (opts) async => PermissionOutcome.allow),
           logger: null,
           onProtocolIn: (msg) {},
           onProtocolOut: (msg) {},

@@ -16,9 +16,7 @@ class OutputFormatter {
     if (mode != OutputMode.text) return;
 
     if (event is TerminalCreated) {
-      stdout.writeln(
-        '[term] created id=${event.terminalId} cmd=${event.command}',
-      );
+      stdout.writeln('[term] created id=${event.terminalId} cmd=${event.command}');
     } else if (event is TerminalOutputEvent) {
       if (event.output.isNotEmpty) {
         stdout.writeln('[term] output id=${event.terminalId}');
@@ -53,13 +51,8 @@ class OutputFormatter {
       final path = loc.path;
       if (path.isNotEmpty) locText = ' @ $path';
     }
-    final header = [
-      if (kind.isNotEmpty) kind,
-      if (title.isNotEmpty) title,
-    ].join(' ');
-    stdout.writeln(
-      '[tool] ${header.isEmpty ? toolCall.toolCallId : header}$locText',
-    );
+    final header = [if (kind.isNotEmpty) kind, if (title.isNotEmpty) title].join(' ');
+    stdout.writeln('[tool] ${header.isEmpty ? toolCall.toolCallId : header}$locText');
     // Show raw input/output snippets when present
     if (toolCall.rawInput != null) {
       final snip = _truncate(_stringify(toolCall.rawInput), 240);
@@ -80,10 +73,7 @@ class OutputFormatter {
       return;
     }
 
-    final texts = delta.content
-        .whereType<TextContent>()
-        .map((b) => b.text)
-        .join();
+    final texts = delta.content.whereType<TextContent>().map((b) => b.text).join();
     if (texts.isNotEmpty) stdout.write(texts);
   }
 

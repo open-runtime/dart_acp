@@ -48,8 +48,7 @@ abstract class PermissionProvider {
 }
 
 /// Callback signature for handling permission prompts.
-typedef PermissionCallback =
-    Future<PermissionOutcome> Function(PermissionOptions options);
+typedef PermissionCallback = Future<PermissionOutcome> Function(PermissionOptions options);
 
 /// Default provider with simple policy and optional callback override.
 class DefaultPermissionProvider implements PermissionProvider {

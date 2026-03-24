@@ -95,10 +95,7 @@ class StdinTransport implements AcpTransport {
       },
     );
 
-    _channel = StreamChannel<String>(
-      _inboundController!.stream,
-      _outboundController!.sink,
-    );
+    _channel = StreamChannel<String>(_inboundController!.stream, _outboundController!.sink);
 
     logger.fine('StdinTransport started');
   }

@@ -20,12 +20,7 @@ void main() {
       final a = CliArgs.parse(['-a', 'gemini', '-o', 'json']);
       expect(a.agentName, 'gemini');
       expect(a.output, OutputMode.jsonl);
-      final b = CliArgs.parse([
-        '--agent',
-        'claude-code',
-        '--outputmode',
-        'simple',
-      ]);
+      final b = CliArgs.parse(['--agent', 'claude-code', '--outputmode', 'simple']);
       expect(b.agentName, 'claude-code');
       expect(b.output, OutputMode.simple);
     });
@@ -104,10 +99,7 @@ void main() {
       });
       final file = File('${dir.path}/settings.json');
       await file.writeAsString(jsonEncode({'agent_servers': {}}));
-      expect(
-        () => Settings.loadFromFile(file.path),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => Settings.loadFromFile(file.path), throwsA(isA<FormatException>()));
     });
   });
 }

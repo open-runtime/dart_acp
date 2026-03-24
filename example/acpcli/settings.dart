@@ -2,32 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 
 class AgentServerConfig {
-  AgentServerConfig({
-    required this.command,
-    this.args = const [],
-    this.env = const {},
-  });
+  AgentServerConfig({required this.command, this.args = const [], this.env = const {}});
 
   factory AgentServerConfig.fromJson(Map<String, dynamic> json) {
     final cmd = json['command'];
     if (cmd is! String || cmd.trim().isEmpty) {
-      throw const FormatException(
-        'agent_servers[*].command must be a non-empty string',
-      );
+      throw const FormatException('agent_servers[*].command must be a non-empty string');
     }
     final argsRaw = json['args'];
     final args = <String>[];
     if (argsRaw != null) {
       if (argsRaw is! List) {
-        throw const FormatException(
-          'agent_servers[*].args must be an array of strings',
-        );
+        throw const FormatException('agent_servers[*].args must be an array of strings');
       }
       for (final e in argsRaw) {
         if (e is! String) {
-          throw const FormatException(
-            'agent_servers[*].args must be an array of strings',
-          );
+          throw const FormatException('agent_servers[*].args must be an array of strings');
         }
         args.add(e);
       }
@@ -37,15 +27,11 @@ class AgentServerConfig {
     final env = <String, String>{};
     if (envRaw != null) {
       if (envRaw is! Map) {
-        throw const FormatException(
-          'agent_servers[*].env must be an object of string to string',
-        );
+        throw const FormatException('agent_servers[*].env must be an object of string to string');
       }
       envRaw.forEach((k, v) {
         if (k is! String || v is! String) {
-          throw const FormatException(
-            'agent_servers[*].env must be an object of string to string',
-          );
+          throw const FormatException('agent_servers[*].env must be an object of string to string');
         }
         env[k] = v;
       });
@@ -75,9 +61,7 @@ class Settings {
     }
     final serversRaw = decoded['agent_servers'];
     if (serversRaw is! Map) {
-      throw const FormatException(
-        'settings.json must contain an agent_servers object',
-      );
+      throw const FormatException('settings.json must contain an agent_servers object');
     }
     final map = <String, AgentServerConfig>{};
     serversRaw.forEach((key, value) {
@@ -119,39 +103,26 @@ class Settings {
 }
 
 class McpServerConfig {
-  McpServerConfig({
-    required this.name,
-    required this.command,
-    this.args = const [],
-    this.env = const {},
-  });
+  McpServerConfig({required this.name, required this.command, this.args = const [], this.env = const {}});
 
   factory McpServerConfig.fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final cmd = json['command'];
     if (name is! String || name.trim().isEmpty) {
-      throw const FormatException(
-        'mcp_servers[*].name must be a non-empty string',
-      );
+      throw const FormatException('mcp_servers[*].name must be a non-empty string');
     }
     if (cmd is! String || cmd.trim().isEmpty) {
-      throw const FormatException(
-        'mcp_servers[*].command must be a non-empty string',
-      );
+      throw const FormatException('mcp_servers[*].command must be a non-empty string');
     }
     final argsRaw = json['args'];
     final args = <String>[];
     if (argsRaw != null) {
       if (argsRaw is! List) {
-        throw const FormatException(
-          'mcp_servers[*].args must be an array of strings',
-        );
+        throw const FormatException('mcp_servers[*].args must be an array of strings');
       }
       for (final e in argsRaw) {
         if (e is! String) {
-          throw const FormatException(
-            'mcp_servers[*].args must be an array of strings',
-          );
+          throw const FormatException('mcp_servers[*].args must be an array of strings');
         }
         args.add(e);
       }
@@ -160,15 +131,11 @@ class McpServerConfig {
     final env = <String, String>{};
     if (envRaw != null) {
       if (envRaw is! Map) {
-        throw const FormatException(
-          'mcp_servers[*].env must be an object of string to string',
-        );
+        throw const FormatException('mcp_servers[*].env must be an object of string to string');
       }
       envRaw.forEach((k, v) {
         if (k is! String || v is! String) {
-          throw const FormatException(
-            'mcp_servers[*].env must be an object of string to string',
-          );
+          throw const FormatException('mcp_servers[*].env must be an object of string to string');
         }
         env[k] = v;
       });

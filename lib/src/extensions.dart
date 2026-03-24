@@ -29,8 +29,7 @@ bool isValidExtensionMethod(String methodName) => methodName.startsWith('_');
 /// final method = extensionMethodName('zed.dev', 'workspace/buffers');
 /// // Returns: '_zed.dev/workspace/buffers'
 /// ```
-String extensionMethodName(String vendorDomain, String methodName) =>
-    '_$vendorDomain/$methodName';
+String extensionMethodName(String vendorDomain, String methodName) => '_$vendorDomain/$methodName';
 
 /// Extension metadata that can be attached to any ACP type.
 ///
@@ -95,8 +94,7 @@ class ExtensionMeta {
   }
 
   /// Create a copy with additional entries.
-  ExtensionMeta copyWith(Map<String, dynamic> additional) =>
-      ExtensionMeta({..._data, ...additional});
+  ExtensionMeta copyWith(Map<String, dynamic> additional) => ExtensionMeta({..._data, ...additional});
 
   /// Convert to JSON for wire format (the `_meta` field value).
   Map<String, dynamic> toJson() => Map.unmodifiable(_data);
@@ -105,9 +103,7 @@ class ExtensionMeta {
   String toString() => 'ExtensionMeta($_data)';
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ExtensionMeta && _mapEquals(_data, other._data);
+  bool operator ==(Object other) => identical(this, other) || other is ExtensionMeta && _mapEquals(_data, other._data);
 
   @override
   int get hashCode => Object.hashAll(_data.entries);
@@ -146,9 +142,7 @@ class ExtensionCapabilities {
   /// Creates extension capabilities from JSON (the `_meta` field in
   /// capabilities).
   factory ExtensionCapabilities.fromJson(Map<String, dynamic>? json) =>
-      json == null
-      ? const ExtensionCapabilities()
-      : ExtensionCapabilities(Map.from(json));
+      json == null ? const ExtensionCapabilities() : ExtensionCapabilities(Map.from(json));
 
   final Map<String, dynamic> _vendors;
 
@@ -229,9 +223,7 @@ class ExtensionResponse {
   /// Get the `_meta` field if present.
   ExtensionMeta? get meta {
     final metaJson = _result['_meta'];
-    return metaJson is Map<String, dynamic>
-        ? ExtensionMeta.fromJson(metaJson)
-        : null;
+    return metaJson is Map<String, dynamic> ? ExtensionMeta.fromJson(metaJson) : null;
   }
 
   @override
@@ -243,8 +235,7 @@ class ExtensionResponse {
 /// Provides a builder-like API for constructing extension method parameters.
 class ExtensionParams {
   /// Creates extension parameters.
-  ExtensionParams([Map<String, dynamic>? initial])
-    : _params = initial != null ? Map.from(initial) : {};
+  ExtensionParams([Map<String, dynamic>? initial]) : _params = initial != null ? Map.from(initial) : {};
 
   final Map<String, dynamic> _params;
 
@@ -283,8 +274,7 @@ mixin ExtensionMetaMixin {
   ExtensionMeta? get extensionMeta;
 
   /// Check if extension metadata is present.
-  bool get hasExtensionMeta =>
-      extensionMeta != null && extensionMeta!.isNotEmpty;
+  bool get hasExtensionMeta => extensionMeta != null && extensionMeta!.isNotEmpty;
 
   /// Get a value from extension metadata.
   T? getMetaValue<T>(String key) {
@@ -294,8 +284,7 @@ mixin ExtensionMetaMixin {
   }
 
   /// Get vendor-specific data from extension metadata.
-  Map<String, dynamic>? getVendorMeta(String vendorDomain) =>
-      extensionMeta?.getVendorData(vendorDomain);
+  Map<String, dynamic>? getVendorMeta(String vendorDomain) => extensionMeta?.getVendorData(vendorDomain);
 }
 
 /// ACP error codes for extension-related errors.
@@ -313,6 +302,5 @@ abstract class ExtensionErrorCodes {
   static const int reservedRangeEnd = -32099;
 
   /// Check if an error code is in the reserved implementation range.
-  static bool isImplementationError(int code) =>
-      code >= reservedRangeEnd && code <= reservedRangeStart;
+  static bool isImplementationError(int code) => code >= reservedRangeEnd && code <= reservedRangeStart;
 }

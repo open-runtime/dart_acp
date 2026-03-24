@@ -6,10 +6,7 @@ import 'package:test/test.dart';
 void main() {
   group('SessionInfo', () {
     test('creates from required fields', () {
-      const info = SessionInfo(
-        sessionId: 'sess_123',
-        cwd: '/home/user/project',
-      );
+      const info = SessionInfo(sessionId: 'sess_123', cwd: '/home/user/project');
       expect(info.sessionId, 'sess_123');
       expect(info.cwd, '/home/user/project');
       expect(info.title, isNull);
@@ -33,10 +30,7 @@ void main() {
     });
 
     test('fromJson parses required fields', () {
-      final info = SessionInfo.fromJson({
-        'sessionId': 'sess_789',
-        'cwd': '/project',
-      });
+      final info = SessionInfo.fromJson({'sessionId': 'sess_789', 'cwd': '/project'});
       expect(info.sessionId, 'sess_789');
       expect(info.cwd, '/project');
     });
@@ -120,10 +114,7 @@ void main() {
     });
 
     test('fromJson parses cursor', () {
-      final result = SessionListResult.fromJson({
-        'sessions': [],
-        'nextCursor': 'page2token',
-      });
+      final result = SessionListResult.fromJson({'sessions': [], 'nextCursor': 'page2token'});
       expect(result.nextCursor, 'page2token');
       expect(result.hasMore, isTrue);
     });
@@ -131,13 +122,7 @@ void main() {
 
   group('ConfigOption', () {
     test('creates with required fields', () {
-      const option = ConfigOption(
-        id: 'model',
-        name: 'Model',
-        type: 'select',
-        currentValue: 'gpt-4',
-        options: [],
-      );
+      const option = ConfigOption(id: 'model', name: 'Model', type: 'select', currentValue: 'gpt-4', options: []);
       expect(option.id, 'model');
       expect(option.name, 'Model');
       expect(option.type, 'select');
@@ -192,11 +177,7 @@ void main() {
     });
 
     test('fromJson parses all fields', () {
-      final choice = ConfigOptionChoice.fromJson({
-        'value': 'opt1',
-        'name': 'Option 1',
-        'description': 'First option',
-      });
+      final choice = ConfigOptionChoice.fromJson({'value': 'opt1', 'name': 'Option 1', 'description': 'First option'});
       expect(choice.value, 'opt1');
       expect(choice.name, 'Option 1');
       expect(choice.description, 'First option');
@@ -221,13 +202,7 @@ void main() {
       final result = SessionResult.fromJson({
         'sessionId': 'sess_result',
         'configOptions': [
-          {
-            'id': 'model',
-            'name': 'Model',
-            'type': 'select',
-            'currentValue': 'gpt-4',
-            'options': [],
-          },
+          {'id': 'model', 'name': 'Model', 'type': 'select', 'currentValue': 'gpt-4', 'options': []},
         ],
         '_meta': {'agent': 'test'},
       });

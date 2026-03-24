@@ -3,19 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_acp/dart_acp.dart';
-import 'package:dart_acp/src/session/session_manager.dart'
-    show InitializeResult;
+import 'package:dart_acp/src/session/session_manager.dart' show InitializeResult;
 
 import 'args.dart';
 
 /// Handles --list-* operations for the CLI.
 class ListOperationsHandler {
-  ListOperationsHandler({
-    required this.args,
-    required this.client,
-    required this.init,
-    required this.agentName,
-  });
+  ListOperationsHandler({required this.args, required this.client, required this.init, required this.agentName});
 
   final CliArgs args;
   final AcpClient client;
@@ -100,11 +94,7 @@ class ListOperationsHandler {
           'method': 'client/modes',
           'params': {
             'current': modes?.currentModeId,
-            'available':
-                modes?.availableModes
-                    .map((m) => {'id': m.id, 'name': m.name})
-                    .toList() ??
-                [],
+            'available': modes?.availableModes.map((m) => {'id': m.id, 'name': m.name}).toList() ?? [],
           },
         };
         stdout.writeln(jsonEncode(modesJson));
@@ -113,9 +103,7 @@ class ListOperationsHandler {
           final current = modes.currentModeId ?? '(none)';
           final available = modes.availableModes.isEmpty
               ? '(no modes)'
-              : modes.availableModes
-                    .map((m) => '- ${m.id}: ${m.name}')
-                    .join('\n');
+              : modes.availableModes.map((m) => '- ${m.id}: ${m.name}').join('\n');
           outputSections.add(
             '# Modes ($agentName)\n'
             'Current: $current\n'
@@ -139,10 +127,7 @@ class ListOperationsHandler {
             'method': 'session/update',
             'params': {
               'sessionId': sessionId,
-              'update': {
-                'sessionUpdate': 'available_commands_update',
-                'availableCommands': <dynamic>[],
-              },
+              'update': {'sessionUpdate': 'available_commands_update', 'availableCommands': <dynamic>[]},
             },
           };
           stdout.writeln(jsonEncode(synthetic));
@@ -229,10 +214,7 @@ class ListOperationsHandler {
     return lines.isEmpty ? '(no capabilities)' : lines.join('\n');
   }
 
-  Future<List<AvailableCommand>> _waitForCommands(
-    AcpClient client,
-    String sessionId,
-  ) async {
+  Future<List<AvailableCommand>> _waitForCommands(AcpClient client, String sessionId) async {
     final completer = Completer<List<AvailableCommand>>();
     late StreamSubscription<AcpUpdate> sub;
 
@@ -253,10 +235,7 @@ class ListOperationsHandler {
     }
   }
 
-  String _formatCommandsMarkdown(
-    List<AvailableCommand> commands,
-    String agentName,
-  ) {
+  String _formatCommandsMarkdown(List<AvailableCommand> commands, String agentName) {
     final buffer = StringBuffer();
     buffer.writeln('# Commands ($agentName)');
 
@@ -287,9 +266,7 @@ class ListOperationsHandler {
     } else {
       for (final s in result.sessions) {
         final title = s.title ?? s.sessionId;
-        final updated = s.updatedAt != null
-            ? ' (${s.updatedAt!.toLocal().toString().split('.').first})'
-            : '';
+        final updated = s.updatedAt != null ? ' (${s.updatedAt!.toLocal().toString().split('.').first})' : '';
         buffer.writeln('- $title$updated');
         buffer.writeln('  ID: ${s.sessionId}');
         buffer.writeln('  CWD: ${s.cwd}');

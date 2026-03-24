@@ -14,10 +14,8 @@ abstract class FsProvider {
 /// Default implementation enforcing a workspace jail.
 class DefaultFsProvider implements FsProvider {
   /// Create a default file system provider with a workspace jail.
-  DefaultFsProvider({
-    required this.workspaceRoot,
-    this.allowReadOutsideWorkspace = false,
-  }) : _jail = WorkspaceJail(workspaceRoot: workspaceRoot);
+  DefaultFsProvider({required this.workspaceRoot, this.allowReadOutsideWorkspace = false})
+    : _jail = WorkspaceJail(workspaceRoot: workspaceRoot);
 
   /// Workspace root directory.
   final String workspaceRoot;
@@ -44,9 +42,7 @@ class DefaultFsProvider implements FsProvider {
     // Interpret line as 1-based starting line and limit as number of lines.
     if (line != null) {
       final start = (line - 1).clamp(0, lines.length);
-      final end = limit == null
-          ? lines.length
-          : (start + limit).clamp(0, lines.length);
+      final end = limit == null ? lines.length : (start + limit).clamp(0, lines.length);
       return lines.sublist(start, end).join('\n');
     }
     // limit only: return first N lines

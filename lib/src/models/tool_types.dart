@@ -121,10 +121,7 @@ class ToolCallLocation {
 
   /// Create from JSON.
   factory ToolCallLocation.fromJson(Map<String, dynamic> json) =>
-      ToolCallLocation(
-        path: json['path'] as String? ?? '',
-        line: (json['line'] as num?)?.toInt(),
-      );
+      ToolCallLocation(path: json['path'] as String? ?? '', line: (json['line'] as num?)?.toInt());
 
   /// The absolute file path being accessed or modified.
   final String path;
@@ -133,10 +130,7 @@ class ToolCallLocation {
   final int? line;
 
   /// Convert to JSON.
-  Map<String, dynamic> toJson() => {
-    'path': path,
-    if (line != null) 'line': line,
-  };
+  Map<String, dynamic> toJson() => {'path': path, if (line != null) 'line': line};
 }
 
 /// Tool call information per latest ACP specification.
@@ -158,13 +152,9 @@ class ToolCall {
     toolCallId: json['toolCallId'] as String? ?? json['id'] as String? ?? '',
     status: ToolCallStatus.fromWire(json['status'] as String?),
     title: json['title'] as String?,
-    kind: json['kind'] != null
-        ? ToolKind.fromWire(json['kind'] as String?)
-        : null,
+    kind: json['kind'] != null ? ToolKind.fromWire(json['kind'] as String?) : null,
     content: json['content'] as List?,
-    locations: (json['locations'] as List?)
-        ?.map((e) => ToolCallLocation.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    locations: (json['locations'] as List?)?.map((e) => ToolCallLocation.fromJson(e as Map<String, dynamic>)).toList(),
     rawInput: json['rawInput'] ?? json['raw_input'],
     rawOutput: json['rawOutput'] ?? json['raw_output'],
   );
@@ -200,8 +190,7 @@ class ToolCall {
     if (title != null) 'title': title,
     if (kind != null) 'kind': kind!.toWire(),
     if (content != null) 'content': content,
-    if (locations != null)
-      'locations': locations!.map((l) => l.toJson()).toList(),
+    if (locations != null) 'locations': locations!.map((l) => l.toJson()).toList(),
     if (rawInput != null) 'rawInput': rawInput,
     if (rawOutput != null) 'rawOutput': rawOutput,
   };
@@ -210,18 +199,12 @@ class ToolCall {
   /// Only non-null fields from the update will override existing values.
   ToolCall merge(Map<String, dynamic> update) => ToolCall(
     toolCallId: toolCallId, // ID never changes
-    status: update['status'] != null
-        ? ToolCallStatus.fromWire(update['status'] as String?)
-        : status,
+    status: update['status'] != null ? ToolCallStatus.fromWire(update['status'] as String?) : status,
     title: update['title'] as String? ?? title,
-    kind: update['kind'] != null
-        ? ToolKind.fromWire(update['kind'] as String?)
-        : kind,
+    kind: update['kind'] != null ? ToolKind.fromWire(update['kind'] as String?) : kind,
     content: update['content'] as List? ?? content,
     locations: update['locations'] != null
-        ? (update['locations'] as List?)
-              ?.map((e) => ToolCallLocation.fromJson(e as Map<String, dynamic>))
-              .toList()
+        ? (update['locations'] as List?)?.map((e) => ToolCallLocation.fromJson(e as Map<String, dynamic>)).toList()
         : locations,
     rawInput: update['rawInput'] ?? update['raw_input'] ?? rawInput,
     rawOutput: update['rawOutput'] ?? update['raw_output'] ?? rawOutput,

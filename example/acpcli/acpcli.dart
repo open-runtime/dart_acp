@@ -57,10 +57,7 @@ Future<void> main(List<String> argv) async {
           'name': s.name,
           'command': s.command,
           'args': s.args,
-          if (s.env.isNotEmpty)
-            'env': s.env.entries
-                .map((e) => {'name': e.key, 'value': e.value})
-                .toList(),
+          if (s.env.isNotEmpty) 'env': s.env.entries.map((e) => {'name': e.key, 'value': e.value}).toList(),
         },
       )
       .toList();
@@ -70,10 +67,7 @@ Future<void> main(List<String> argv) async {
     agentArgs: agent.args,
     envOverrides: agent.env,
     capabilities: AcpCapabilities(
-      fs: FsCapabilities(
-        readTextFile: true,
-        writeTextFile: args.write || args.yolo,
-      ),
+      fs: FsCapabilities(readTextFile: true, writeTextFile: args.write || args.yolo),
       terminal: true, // Enable terminal capability for command execution
     ),
     mcpServers: mcpServers,
@@ -88,9 +82,7 @@ Future<void> main(List<String> argv) async {
         // Classify write-like operations per spec semantics
         final isWriteOp = _isWriteLike(opts.toolName, opts.toolKind);
 
-        final decision = (!isWriteOp || allowWrites)
-            ? PermissionOutcome.allow
-            : PermissionOutcome.deny;
+        final decision = (!isWriteOp || allowWrites) ? PermissionOutcome.allow : PermissionOutcome.deny;
 
         // Surface decision with helpful hint
         if (args.output.isJsonLike) {
@@ -101,9 +93,7 @@ Future<void> main(List<String> argv) async {
             'params': {
               'toolName': opts.toolName,
               if (opts.toolKind != null) 'toolKind': opts.toolKind,
-              'decision': decision == PermissionOutcome.allow
-                  ? 'allow'
-                  : 'deny',
+              'decision': decision == PermissionOutcome.allow ? 'allow' : 'deny',
               if (decision == PermissionOutcome.deny && isWriteOp)
                 'hint':
                     'Use --write or --yolo to enable writes '
@@ -128,12 +118,8 @@ Future<void> main(List<String> argv) async {
         return decision;
       },
     ),
-    onProtocolOut: args.output.isJsonLike
-        ? (line) => stdout.writeln(line)
-        : null,
-    onProtocolIn: args.output.isJsonLike
-        ? (line) => stdout.writeln(line)
-        : null,
+    onProtocolOut: args.output.isJsonLike ? (line) => stdout.writeln(line) : null,
+    onProtocolIn: args.output.isJsonLike ? (line) => stdout.writeln(line) : null,
     terminalProvider: DefaultTerminalProvider(),
   );
 
@@ -141,10 +127,8 @@ Future<void> main(List<String> argv) async {
 
   // Prepare prompt and check if we're in list-only mode.
   final prompt = await _readPrompt(args);
-  final hasListFlags =
-      args.listCaps || args.listCommands || args.listModes || args.listSessions;
-  final isListOnlyMode =
-      hasListFlags && (prompt == null || prompt.trim().isEmpty);
+  final hasListFlags = args.listCaps || args.listCommands || args.listModes || args.listSessions;
+  final isListOnlyMode = hasListFlags && (prompt == null || prompt.trim().isEmpty);
 
   if (!hasListFlags && (prompt == null || prompt.trim().isEmpty)) {
     stderr.writeln('Error: empty prompt');
@@ -158,9 +142,7 @@ Future<void> main(List<String> argv) async {
     final sid = _sessionId;
     if (sid != null) {
       // Fire-and-forget: send cancel, then exit
-      unawaited(
-        client.cancel(sessionId: sid).whenComplete(() => exit(130)),
-      ); // 128+SIGINT
+      unawaited(client.cancel(sessionId: sid).whenComplete(() => exit(130))); // 128+SIGINT
       return;
     }
     exit(130);
@@ -171,12 +153,7 @@ Future<void> main(List<String> argv) async {
   // Handle list flags first if present
   String? listSessionId;
   if (hasListFlags) {
-    final listHandler = ListOperationsHandler(
-      args: args,
-      client: client,
-      init: init,
-      agentName: agentName,
-    );
+    final listHandler = ListOperationsHandler(args: args, client: client, init: init, agentName: agentName);
     listSessionId = await listHandler.handleListFlags();
 
     // If no prompt, exit after lists
@@ -192,18 +169,13 @@ Future<void> main(List<String> argv) async {
   } else if (args.resumeSessionId != null) {
     // Guard session/load behind capability per spec (using extension helper)
     if (!init.supportsLoadSession) {
-      stderr.writeln(
-        'Error: Agent does not support session/load (loadSession=false).',
-      );
+      stderr.writeln('Error: Agent does not support session/load (loadSession=false).');
       await sigintSub.cancel();
       await client.dispose();
       exit(2);
     }
     _sessionId = args.resumeSessionId;
-    await client.loadSession(
-      sessionId: _sessionId!,
-      workspaceRoot: Directory.current.path,
-    );
+    await client.loadSession(sessionId: _sessionId!, workspaceRoot: Directory.current.path);
   } else {
     _sessionId = await client.newSession(Directory.current.path);
     if (args.saveSessionPath != null) {
@@ -232,9 +204,7 @@ Future<void> main(List<String> argv) async {
     final modes = client.sessionModes(_sessionId!);
     const fallback = <({String id, String name})>[];
     final modeList = modes?.availableModes ?? fallback;
-    final available = {
-      for (final ({String id, String name}) m in modeList) m.id,
-    };
+    final available = {for (final ({String id, String name}) m in modeList) m.id};
     final desired = args.modeId!;
     if (!available.contains(desired)) {
       stderr.writeln('Error: Mode "$desired" not available.');

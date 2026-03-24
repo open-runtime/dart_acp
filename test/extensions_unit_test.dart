@@ -21,14 +21,8 @@ void main() {
     });
 
     test('extensionMethodName creates proper format', () {
-      expect(
-        extensionMethodName('zed.dev', 'workspace/buffers'),
-        '_zed.dev/workspace/buffers',
-      );
-      expect(
-        extensionMethodName('mycompany.com', 'custom'),
-        '_mycompany.com/custom',
-      );
+      expect(extensionMethodName('zed.dev', 'workspace/buffers'), '_zed.dev/workspace/buffers');
+      expect(extensionMethodName('mycompany.com', 'custom'), '_mycompany.com/custom');
     });
   });
 
@@ -238,27 +232,19 @@ void main() {
     });
 
     test('withMeta adds _meta field', () {
-      final params = ExtensionParams({
-        'data': 'test',
-      }).withMeta(const ExtensionMeta({'debug': true}));
+      final params = ExtensionParams({'data': 'test'}).withMeta(const ExtensionMeta({'debug': true}));
       final json = params.toJson();
       expect(json['data'], 'test');
       expect(json['_meta'], {'debug': true});
     });
 
     test('withMeta skips empty meta', () {
-      final params = ExtensionParams({
-        'data': 'test',
-      }).withMeta(const ExtensionMeta());
+      final params = ExtensionParams({'data': 'test'}).withMeta(const ExtensionMeta());
       expect(params.toJson().containsKey('_meta'), isFalse);
     });
 
     test('chaining works', () {
-      final params = ExtensionParams()
-          .set('a', 1)
-          .set('b', 2)
-          .setAll({'c': 3})
-          .withMeta(const ExtensionMeta({'d': 4}));
+      final params = ExtensionParams().set('a', 1).set('b', 2).setAll({'c': 3}).withMeta(const ExtensionMeta({'d': 4}));
       final json = params.toJson();
       expect(json['a'], 1);
       expect(json['b'], 2);
@@ -325,9 +311,7 @@ void main() {
 
     test('copyWith preserves values', () {
       const caps = AcpCapabilities(terminal: true, meta: {'test': true});
-      final copied = caps.copyWith(
-        fs: const FsCapabilities(writeTextFile: true),
-      );
+      final copied = caps.copyWith(fs: const FsCapabilities(writeTextFile: true));
       expect(copied.terminal, isTrue);
       expect(copied.meta, {'test': true});
       expect(copied.fs.writeTextFile, isTrue);
@@ -351,31 +335,19 @@ void main() {
     });
 
     test('extensionCapabilities handles missing _meta', () {
-      final result = InitializeResult(
-        protocolVersion: 1,
-        agentCapabilities: {'loadSession': true},
-        authMethods: null,
-      );
+      final result = InitializeResult(protocolVersion: 1, agentCapabilities: {'loadSession': true}, authMethods: null);
       final extCaps = result.extensionCapabilities;
       expect(extCaps.isEmpty, isTrue);
     });
 
     test('extensionCapabilities handles null capabilities', () {
-      final result = InitializeResult(
-        protocolVersion: 1,
-        agentCapabilities: null,
-        authMethods: null,
-      );
+      final result = InitializeResult(protocolVersion: 1, agentCapabilities: null, authMethods: null);
       final extCaps = result.extensionCapabilities;
       expect(extCaps.isEmpty, isTrue);
     });
 
     test('supportsLoadSession checks capability', () {
-      final result = InitializeResult(
-        protocolVersion: 1,
-        agentCapabilities: {'loadSession': true},
-        authMethods: null,
-      );
+      final result = InitializeResult(protocolVersion: 1, agentCapabilities: {'loadSession': true}, authMethods: null);
       expect(result.supportsLoadSession, isTrue);
     });
 
@@ -383,11 +355,7 @@ void main() {
       final result = InitializeResult(
         protocolVersion: 1,
         agentCapabilities: {
-          'promptCapabilities': {
-            'image': true,
-            'audio': false,
-            'embeddedContext': true,
-          },
+          'promptCapabilities': {'image': true, 'audio': false, 'embeddedContext': true},
         },
         authMethods: null,
       );
@@ -398,11 +366,7 @@ void main() {
     });
 
     test('promptCapabilities defaults when missing', () {
-      final result = InitializeResult(
-        protocolVersion: 1,
-        agentCapabilities: null,
-        authMethods: null,
-      );
+      final result = InitializeResult(protocolVersion: 1, agentCapabilities: null, authMethods: null);
       final caps = result.promptCapabilities;
       expect(caps.image, isFalse);
       expect(caps.audio, isFalse);

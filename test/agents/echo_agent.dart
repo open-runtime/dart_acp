@@ -14,8 +14,7 @@ void main() async {
     }
     final method = msg['method'] as String?;
     final id = msg['id'];
-    final params =
-        (msg['params'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final params = (msg['params'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     if (method == null) continue;
     switch (method) {
       case 'initialize':
@@ -40,13 +39,8 @@ void main() async {
         _send({'jsonrpc': '2.0', 'id': id, 'result': {}});
       case 'session/prompt':
         final sessionId = params['sessionId'] as String? ?? '';
-        final blocks =
-            (params['prompt'] as List?)?.cast<Map<String, dynamic>>() ??
-            const <Map<String, dynamic>>[];
-        final text = blocks
-            .where((b) => b['type'] == 'text')
-            .map((b) => (b['text'] ?? '').toString())
-            .join();
+        final blocks = (params['prompt'] as List?)?.cast<Map<String, dynamic>>() ?? const <Map<String, dynamic>>[];
+        final text = blocks.where((b) => b['type'] == 'text').map((b) => (b['text'] ?? '').toString()).join();
         final reply = 'Echo: ${text.trim()}';
         _send({
           'jsonrpc': '2.0',

@@ -37,13 +37,7 @@ enum DiffStatus {
 /// A single change in a diff.
 class DiffChange {
   /// Creates a diff change.
-  const DiffChange({
-    required this.type,
-    this.line,
-    this.content,
-    this.oldContent,
-    this.newContent,
-  });
+  const DiffChange({required this.type, this.line, this.content, this.oldContent, this.newContent});
 
   /// Create from JSON.
   factory DiffChange.fromJson(Map<String, dynamic> json) => DiffChange(
@@ -82,21 +76,12 @@ class DiffChange {
 /// Diff information.
 class Diff {
   /// Creates a diff.
-  const Diff({
-    required this.id,
-    required this.status,
-    this.uri,
-    this.changes = const [],
-    this.description,
-  });
+  const Diff({required this.id, required this.status, this.uri, this.changes = const [], this.description});
 
   /// Create from JSON.
   factory Diff.fromJson(Map<String, dynamic> json) {
     final changesList =
-        (json['changes'] as List?)
-            ?.map((c) => DiffChange.fromJson(c as Map<String, dynamic>))
-            .toList() ??
-        const [];
+        (json['changes'] as List?)?.map((c) => DiffChange.fromJson(c as Map<String, dynamic>)).toList() ?? const [];
 
     return Diff(
       id: json['id'] as String? ?? '',

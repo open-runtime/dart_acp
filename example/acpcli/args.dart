@@ -33,26 +33,11 @@ class CliArgs {
       )
       ..addOption('settings', help: 'Use a specific settings.json')
       ..addFlag('yolo', help: 'Enable read-everywhere and write-enabled')
-      ..addFlag(
-        'write',
-        help: 'Enable write capability (still confined to CWD)',
-      )
-      ..addFlag(
-        'list-commands',
-        help: 'Print available slash commands (no prompt sent)',
-      )
-      ..addFlag(
-        'list-modes',
-        help: 'Print available session modes (no prompt sent)',
-      )
-      ..addFlag(
-        'list-caps',
-        help: 'Print agent capabilities from initialize (no prompt sent)',
-      )
-      ..addFlag(
-        'list-sessions',
-        help: 'List existing sessions for current directory (if supported)',
-      )
+      ..addFlag('write', help: 'Enable write capability (still confined to CWD)')
+      ..addFlag('list-commands', help: 'Print available slash commands (no prompt sent)')
+      ..addFlag('list-modes', help: 'Print available session modes (no prompt sent)')
+      ..addFlag('list-caps', help: 'Print agent capabilities from initialize (no prompt sent)')
+      ..addFlag('list-sessions', help: 'List existing sessions for current directory (if supported)')
       ..addOption('mode', help: 'Set session mode after creation')
       ..addOption('resume', help: 'Resume an existing session (replay)')
       ..addOption('save-session', help: 'Save new sessionId to file');
@@ -109,26 +94,11 @@ class CliArgs {
       )
       ..addOption('settings', help: 'Use a specific settings.json')
       ..addFlag('yolo', help: 'Enable read-everywhere and write-enabled')
-      ..addFlag(
-        'write',
-        help: 'Enable write capability (still confined to CWD)',
-      )
-      ..addFlag(
-        'list-commands',
-        help: 'Print available slash commands (no prompt sent)',
-      )
-      ..addFlag(
-        'list-modes',
-        help: 'Print available session modes (no prompt sent)',
-      )
-      ..addFlag(
-        'list-caps',
-        help: 'Print agent capabilities from initialize (no prompt sent)',
-      )
-      ..addFlag(
-        'list-sessions',
-        help: 'List existing sessions for current directory (if supported)',
-      )
+      ..addFlag('write', help: 'Enable write capability (still confined to CWD)')
+      ..addFlag('list-commands', help: 'Print available slash commands (no prompt sent)')
+      ..addFlag('list-modes', help: 'Print available session modes (no prompt sent)')
+      ..addFlag('list-caps', help: 'Print agent capabilities from initialize (no prompt sent)')
+      ..addFlag('list-sessions', help: 'List existing sessions for current directory (if supported)')
       ..addOption('mode', help: 'Set session mode after creation')
       ..addOption('resume', help: 'Resume an existing session (replay)')
       ..addOption('save-session', help: 'Save new sessionId to file');

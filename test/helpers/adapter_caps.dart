@@ -5,8 +5,7 @@ import 'dart:io';
 /// Returns null if Gemini auth is configured; otherwise a skip reason.
 /// Checks GEMINI_API_KEY and GOOGLE_API_KEY (Gemini CLI supports both).
 String? skipIfGeminiAuthMissing() {
-  final key = Platform.environment['GEMINI_API_KEY'] ??
-      Platform.environment['GOOGLE_API_KEY'];
+  final key = Platform.environment['GEMINI_API_KEY'] ?? Platform.environment['GOOGLE_API_KEY'];
   if (key == null || key.trim().isEmpty) {
     return 'GEMINI_API_KEY or GOOGLE_API_KEY not set; skipping Gemini test';
   }
@@ -18,8 +17,7 @@ class AgentCaps {
   final String agent;
   final Map<String, dynamic> result;
   Map<String, dynamic> get agentCapabilities =>
-      (result['agentCapabilities'] as Map?)?.cast<String, dynamic>() ??
-      const {};
+      (result['agentCapabilities'] as Map?)?.cast<String, dynamic>() ?? const {};
   int get protocolVersion => (result['protocolVersion'] as num?)?.toInt() ?? 0;
 }
 
@@ -31,16 +29,7 @@ Future<AgentCaps> capsFor(String agent) async {
   final settingsPath = File('test/test_settings.json').absolute.path;
   final proc = await Process.run(
     'dart',
-    [
-      'example/acpcli/acpcli.dart',
-      '--settings',
-      settingsPath,
-      '-a',
-      agent,
-      '-o',
-      'jsonl',
-      '--list-caps',
-    ],
+    ['example/acpcli/acpcli.dart', '--settings', settingsPath, '-a', agent, '-o', 'jsonl', '--list-caps'],
     stdoutEncoding: utf8,
     stderrEncoding: utf8,
   );
@@ -83,11 +72,7 @@ bool _hasKeyLike(dynamic node, String pattern) {
 }
 
 /// Returns null if supported; otherwise a skip reason. All patterns must match.
-Future<String?> skipIfMissingAll(
-  String agent,
-  List<String> capKeyPatterns,
-  String name,
-) async {
+Future<String?> skipIfMissingAll(String agent, List<String> capKeyPatterns, String name) async {
   final caps = await capsFor(agent);
   final ac = caps.agentCapabilities;
   // If agentCapabilities map is empty, be conservative and skip.
@@ -103,11 +88,7 @@ Future<String?> skipIfMissingAll(
 }
 
 /// Returns null if any pattern matches; otherwise a skip reason.
-Future<String?> skipUnlessAny(
-  String agent,
-  List<String> patterns,
-  String name,
-) async {
+Future<String?> skipUnlessAny(String agent, List<String> patterns, String name) async {
   final caps = await capsFor(agent);
   final ac = caps.agentCapabilities;
   if (ac.isEmpty) {
@@ -125,9 +106,7 @@ Future<String?> skipUnlessAny(
 /// terminal appears supported; otherwise a descriptive skip reason.
 Future<String?> skipIfNoRuntimeTerminal(String agent) async {
   if (_terminalRuntimeCache.containsKey(agent)) {
-    return _terminalRuntimeCache[agent]!
-        ? null
-        : "Adapter '$agent' lacks runtime terminal support";
+    return _terminalRuntimeCache[agent]! ? null : "Adapter '$agent' lacks runtime terminal support";
   }
   final settingsPath = File('test/test_settings.json').absolute.path;
   final proc = await Process.run(
@@ -161,14 +140,11 @@ Future<String?> skipIfNoRuntimeTerminal(String agent) async {
     final kind = upd['sessionUpdate'];
     if (kind != 'tool_call_update') continue;
     final content = upd['content'];
-    if (content is List &&
-        content.any((c) => c is Map && c['type'] == 'terminal')) {
+    if (content is List && content.any((c) => c is Map && c['type'] == 'terminal')) {
       sawTerminal = true;
       break;
     }
   }
   _terminalRuntimeCache[agent] = sawTerminal;
-  return sawTerminal
-      ? null
-      : "Adapter '$agent' did not emit terminal content in JSONL during probe";
+  return sawTerminal ? null : "Adapter '$agent' did not emit terminal content in JSONL during probe";
 }

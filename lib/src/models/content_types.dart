@@ -35,8 +35,7 @@ class TextContent extends ContentBlock {
   const TextContent({required this.text});
 
   /// Creates from JSON.
-  factory TextContent.fromJson(Map<String, dynamic> json) =>
-      TextContent(text: json['text'] as String? ?? '');
+  factory TextContent.fromJson(Map<String, dynamic> json) => TextContent(text: json['text'] as String? ?? '');
 
   /// The text content.
   final String text;
@@ -51,10 +50,8 @@ class ImageContent extends ContentBlock {
   const ImageContent({required this.mimeType, required this.data});
 
   /// Creates from JSON.
-  factory ImageContent.fromJson(Map<String, dynamic> json) => ImageContent(
-    mimeType: json['mimeType'] as String? ?? '',
-    data: json['data'] as String? ?? '',
-  );
+  factory ImageContent.fromJson(Map<String, dynamic> json) =>
+      ImageContent(mimeType: json['mimeType'] as String? ?? '', data: json['data'] as String? ?? '');
 
   /// MIME type of the image.
   final String mimeType;
@@ -63,11 +60,7 @@ class ImageContent extends ContentBlock {
   final String data;
 
   @override
-  Map<String, dynamic> toJson() => {
-    'type': 'image',
-    'mimeType': mimeType,
-    'data': data,
-  };
+  Map<String, dynamic> toJson() => {'type': 'image', 'mimeType': mimeType, 'data': data};
 }
 
 /// Resource link content block.
@@ -76,12 +69,11 @@ class ResourceContent extends ContentBlock {
   const ResourceContent({required this.uri, this.title, this.mimeType});
 
   /// Creates from JSON.
-  factory ResourceContent.fromJson(Map<String, dynamic> json) =>
-      ResourceContent(
-        uri: json['uri'] as String? ?? '',
-        title: json['title'] as String?,
-        mimeType: json['mimeType'] as String?,
-      );
+  factory ResourceContent.fromJson(Map<String, dynamic> json) => ResourceContent(
+    uri: json['uri'] as String? ?? '',
+    title: json['title'] as String?,
+    mimeType: json['mimeType'] as String?,
+  );
 
   /// URI of the resource.
   final String uri;
