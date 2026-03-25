@@ -13,13 +13,13 @@
       "lib_paths": [
         "lib/src/content/"
       ],
-      "output_path": "docs/content/",
+      "output_path": "docs/content",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "d5c605563cf684f6da24766b7bd69748f221382cad7e16cedc43fe50f73deca7",
+      "last_updated": "2026-03-25T02:10:29.181816Z"
     },
     {
       "id": "models",
@@ -30,13 +30,13 @@
       "lib_paths": [
         "lib/src/models/"
       ],
-      "output_path": "docs/models/",
+      "output_path": "docs/models",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "d7038b2be37592360c878b0a39fc4f540f36d9fe142da9c2aa27b7f2918c7e69",
+      "last_updated": "2026-03-25T02:10:29.182160Z"
     },
     {
       "id": "providers",
@@ -47,13 +47,13 @@
       "lib_paths": [
         "lib/src/providers/"
       ],
-      "output_path": "docs/providers/",
+      "output_path": "docs/providers",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "616dc22a42735ba2fd6603dcc2579463f5106cd046d1c5b077d283fd4b80759f",
+      "last_updated": "2026-03-25T02:10:29.182166Z"
     },
     {
       "id": "rpc",
@@ -64,13 +64,13 @@
       "lib_paths": [
         "lib/src/rpc/"
       ],
-      "output_path": "docs/rpc/",
+      "output_path": "docs/rpc",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "e7f7fddff7f3643f13dfb8727fadce109d3cfe7424304f107d9dee3351f74e80",
+      "last_updated": "2026-03-25T02:10:29.182171Z"
     },
     {
       "id": "security",
@@ -81,13 +81,13 @@
       "lib_paths": [
         "lib/src/security/"
       ],
-      "output_path": "docs/security/",
+      "output_path": "docs/security",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "550b53df1103c6a1950ea15f291407aa0375706490476d9407a64f4f7837d3b5",
+      "last_updated": "2026-03-25T02:10:29.182177Z"
     },
     {
       "id": "session",
@@ -98,13 +98,13 @@
       "lib_paths": [
         "lib/src/session/"
       ],
-      "output_path": "docs/session/",
+      "output_path": "docs/session",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "ce83e061a58face447bcb4d342f73439eafa06aef9d668738610dfea3e3dca80",
+      "last_updated": "2026-03-25T02:10:29.182182Z"
     },
     {
       "id": "transport",
@@ -115,13 +115,13 @@
       "lib_paths": [
         "lib/src/transport/"
       ],
-      "output_path": "docs/transport/",
+      "output_path": "docs/transport",
       "generate": [
         "quickstart",
         "api_reference"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "0037b44f52512be159810d335c1b7cbadce3d0f15297a4d680839c1447f2e111",
+      "last_updated": "2026-03-25T02:10:29.182186Z"
     },
     {
       "id": "top_level",
@@ -130,12 +130,12 @@
         "lib/"
       ],
       "lib_paths": [],
-      "output_path": "docs/",
+      "output_path": "docs",
       "generate": [
         "quickstart"
       ],
-      "hash": "",
-      "last_updated": null
+      "hash": "44cd0c07f236b717ef7ae1e3c49fbcd490599cbac2d053e3172e4502741ba3cd",
+      "last_updated": "2026-03-25T02:10:29.182192Z"
     }
   ],
   "templates": {
