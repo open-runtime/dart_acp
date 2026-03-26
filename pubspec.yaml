@@ -8,6 +8,7 @@ publish_to: none
 environment:
   sdk: ^3.9.0
 
+
 dependencies:
   args: ^2.5.0
   json_rpc_2: ^4.0.0
@@ -25,9 +26,7 @@ dependencies:
 dev_dependencies:
   all_lint_rules_community: ^0.0.43
   lints: ^6.0.0
-  runtime_ci_tooling:
-    git:
-      url: git@github.com:open-runtime/runtime_ci_tooling.git
-      tag_pattern: v{{version}}
-    version: ^0.23.0
+  # runtime_ci_tooling — use global activation (do not add as a dev_dependency). Example:
+  #   dart pub global activate --source git https://github.com/open-runtime/runtime_ci_tooling.git --git-ref vX.Y.Z
+  #   dart pub global run runtime_ci_tooling:manage_cicd --help
   test: ^1.25.6
